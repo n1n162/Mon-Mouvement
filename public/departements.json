@@ -58,7 +58,7 @@
   { "code": "56", "nom": "Morbihan", "actif": false },
   { "code": "57", "nom": "Moselle", "actif": false },
   { "code": "58", "nom": "Nièvre", "actif": false },
-  { "code": "59", "nom": "Nord", "actif": false},
+  { "code": "59", "nom": "Nord", "actif": true},
   { "code": "60", "nom": "Oise", "actif": false },
   { "code": "61", "nom": "Orne", "actif": false },
   { "code": "62", "nom": "Pas-de-Calais", "actif": true },
