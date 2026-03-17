@@ -1,3 +1,23 @@
+export default function handler(req, res) {
+  // Headers CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+  
+  // TEST QUI MARCHE À COUP SÛR
+  res.status(200).json({ 
+    success: true,
+    message: '✅ API serverless native fonctionne ! 🚀',
+    method: req.method,
+    path: req.path || req.url,
+    timestamp: new Date().toISOString()
+  });
+}
 const express = require('express');
 const app = express();
 
