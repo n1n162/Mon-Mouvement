@@ -61,7 +61,7 @@
   { "code": "59", "nom": "Nord", "actif": false},
   { "code": "60", "nom": "Oise", "actif": false },
   { "code": "61", "nom": "Orne", "actif": false },
-  { "code": "62", "nom": "Pas-de-Calais", "actif": false },
+  { "code": "62", "nom": "Pas-de-Calais", "actif": true },
   { "code": "63", "nom": "Puy-de-Dôme", "actif": false },
   { "code": "64", "nom": "Pyrénées-Atlantiques", "actif": false },
   { "code": "65", "nom": "Hautes-Pyrénées", "actif": false },
