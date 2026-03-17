@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mon mouvement - Mobilité Enseignants</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <h1><i class="fas fa-school"></i> Mon mouvement</h1>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="department-section">
+        <div class="department-card">
+          <h2><i class="fas fa-map-marked-alt"></i> Sélectionnez votre département</h2>
+          <p class="department-subtitle">Dans quel département souhaitez-vous rechercher un poste ?</p>
+          <div class="department-selector">
+            <div class="input-group">
+              <i class="fas fa-building"></i>
+              <select id="departement" required>
+                <option value="">Choisissez votre département</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="map-section" id="mapSection" style="display: none;">
+        <div class="map-card">
+          <h3><i class="fas fa-map"></i> Écoles du département sélectionné</h3>
+          <div class="map-info">
+            <p id="mapInfo">Sélectionnez un département pour voir les écoles disponibles</p>
+          </div>
+          <div id="map"></div>
+        </div>
+      </div>
+
+      <div class="search-section" id="searchSection" style="display: none;">
+        <div class="search-card">
+          <h2><i class="fas fa-search"></i> Affiner votre recherche</h2>
+          <p class="search-subtitle">Utilisez les filtres ci-dessous pour trouver les écoles qui vous correspondent</p>
+
+          <form id="filterForm">
+            <div class="criteria-sections">
+              <div class="criteria-section">
+                <h3><i class="fas fa-map-marker-alt"></i> Localisation</h3>
+
+                <div id="positionBanner" style="display:none; background:#fff3cd; border:1px solid #ffc107; border-radius:8px; padding:10px 14px; margin-bottom:10px; font-size:13px; color:#856404;">
+                  <i class="fas fa-exclamation-triangle"></i> Position non détectée automatiquement.
+                  <strong>Saisissez votre adresse</strong> et cliquez sur <em>Localiser</em>, ou <strong>cliquez directement sur la carte</strong>.
+                </div>
+
+                <div class="autocomplete-wrapper" style="position:relative; margin-bottom:20px;">
+                  <div style="display:flex; gap:8px; align-items:center;">
+                    <div class="input-group" style="flex:1; margin-bottom:0;">
+                      <i class="fas fa-home"></i>
+                      <input type="text" id="adresse" placeholder="Tapez votre adresse..." autocomplete="off" />
+                    </div>
+                    <button type="button" id="geocodeBtn" title="Utiliser ma position GPS" style="flex-shrink:0; background:#48bb78; color:white; border:none; border-radius:10px; padding:12px 14px; cursor:pointer; font-size:13px; font-weight:600; white-space:nowrap; height:52px;">
+                      <i class="fas fa-crosshairs"></i> Ma position
+                    </button>
+                  </div>
+                  <ul class="autocomplete-suggestions" id="adresseSuggestions" style="display:none;"></ul>
+                </div>
+                <div id="positionStatus" style="font-size:12px; color:#718096; margin-bottom:6px; margin-top:-4px;"></div>
+
+                <div class="criterion-group">
+                  <label class="criterion-radio">
+                    <input type="radio" name="criterion" value="distance" checked>
+                    <i class="fas fa-road"></i> Distance (km)
+                  </label>
+                  <label class="criterion-radio">
+                    <input type="radio" name="criterion" value="time">
+                    <i class="fas fa-clock"></i> Temps de trajet (min)
+                  </label>
+                </div>
+
+                <div class="input-group">
+                  <i class="fas fa-road" id="criterionIcon"></i>
+                  <input type="number" id="criterionValue" placeholder="Distance max (km)" min="1" max="300" required />
+                </div>
+
+                <div class="autoroute-option">
+                  <label>
+                    <input type="checkbox" id="eviterPeage">
+                    <i class="fas fa-road"></i> Éviter les routes à péage
+                  </label>
+                </div>
+              </div>
+
+              <div class="criteria-section">
+                <h3><i class="fas fa-graduation-cap"></i> Caractéristiques de l'école</h3>
+
+                <div class="input-group">
+                  <i class="fas fa-school"></i>
+                  <select id="type">
+                    <option value="">Tous types d'école</option>
+                    <option value="maternelle">Maternelle</option>
+                    <option value="élémentaire">Élémentaire</option>
+                    <option value="primaire">Primaire (maternelle + élémentaire)</option>
+                  </select>
+                </div>
+
+                <div class="input-group">
+                  <i class="fas fa-building"></i>
+                  <select id="statut">
+                    <option value="">Tous statuts</option>
+                    <option value="Public">Public</option>
+                    <option value="Privé">Privé</option>
+                  </select>
+                </div>
+
+                <div class="input-group">
+                  <i class="fas fa-star"></i>
+                  <select id="educationPrioritaire">
+                    <option value="">Tous établissements</option>
+                    <option value="REP">REP</option>
+                    <option value="REP+">REP+</option>
+                    <option value="hors">Hors éducation prioritaire</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="buttons-container">
+              <button type="submit" class="search-btn">
+                <i class="fas fa-filter"></i> Lancer la recherche
+              </button>
+              <button type="button" id="resetBtn" class="reset-btn">
+                <i class="fas fa-undo"></i> Réinitialiser
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="results-section" id="resultsSection" style="display: none;">
+        <div class="results-card">
+          <p><i class="fas fa-list"></i> Résultats filtrés</p>
+          <div id="results">
+            <div class="no-results">
+              <i class="fas fa-filter"></i>
+              <h2>Appliquez des filtres pour affiner les résultats</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="container" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <p>2025 Mon mouvement - Aide à la mobilité des enseignants</p>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSeZ1s2_wD65yFKch55igjP6Kp_2Fqcr4iNmPUVwZqSZUM-Vvg/viewform?usp=dialog" target="_blank"
+           style="background:#e53e3e; color:white; padding:8px 16px; border-radius:8px; text-decoration:none; font-size:13px; font-weight:500;">
+          <i class="fas fa-bug"></i> Signaler un bug
+        </a>
+      </div>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
