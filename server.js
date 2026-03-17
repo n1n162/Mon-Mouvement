@@ -1,3 +1,19 @@
+const express = require('express');
+const app = express();
+
+app.use(express.json()); // Pour les POST
+
+// TEST IMMÉDIAT
+app.get('/api/test', (req, res) => {
+  res.json({ message: '✅ API fonctionne !', timestamp: new Date().toISOString() });
+});
+
+app.get('/api/*', (req, res) => {
+  res.json({ error: 'Route non trouvée', path: req.path });
+});
+
+// Export pour Vercel
+module.exports = app;
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
