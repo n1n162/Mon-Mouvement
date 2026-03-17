@@ -42,12 +42,23 @@ app.use((req, res) => {
 });
 
 // ✅ EXPORT SANS app.listen() - CRUCIAL
-module.exports = app;
-const express = require('express');
-const app = express();
-
-app.get('/api/test', (req, res) => {
-  res.json({ success: true, message: '✅ Express fonctionne !' });
-});
+module.exports = (req, res) => {
+  // CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+  
+  res.status(200).json({ 
+    success: true,
+    message: '✅ API VERCEL FONCTIONNE !',
+    path: req.url,
+    method: req.method
+  });
+};
 
 module.exports = app;
