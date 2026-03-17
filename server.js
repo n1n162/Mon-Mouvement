@@ -1,64 +1,22 @@
-export default function handler(req, res) {
-  // Headers CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-  
-  // TEST QUI MARCHE À COUP SÛR
-  res.status(200).json({ 
-    success: true,
-    message: '✅ API serverless native fonctionne ! 🚀',
-    method: req.method,
-    path: req.path || req.url,
-    timestamp: new Date().toISOString()
-  });
-}
-const express = require('express');
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
 const app = express();
-
-// Middlewares
+app.use(cors());
 app.use(express.json());
+app.use(express.static("public"));
 
-// Route de test
-app.get('/api/test', (req, res) => {
-  res.json({ 
-    success: true, 
-    message: '✅ Express + Vercel OK !',
-    path: req.path 
-  });
+// 🚗 ORS : Matrice de distance — appelé par /api/matrix/ors dans script.js
+app.post("/api/matrix/ors", async (req, res) => {
+  const { coordinates, avoid_highways } = req.body;
+  // ... votre code inchangé
 });
 
-// Catch-all pour debug
-app.use((req, res) => {
-  res.status(404).json({ 
-    error: 'Route non trouvée', 
-    path: req.path 
-  });
+// 🚗 ORS : Itinéraire complet — appelé par /api/route/ors dans script.js
+app.post('/api/route/ors', async (req, res) => {
+  const { source, destination, avoid_highways } = req.body;
+  // ... votre code inchangé
 });
 
-// ✅ EXPORT SANS app.listen() - CRUCIAL
-module.exports = (req, res) => {
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-  
-  res.status(200).json({ 
-    success: true,
-    message: '✅ API VERCEL FONCTIONNE !',
-    path: req.url,
-    method: req.method
-  });
-};
-
+// ✅ UNE SEULE LIGNE À LA FIN
 module.exports = app;
