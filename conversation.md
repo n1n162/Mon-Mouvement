@@ -1,0 +1,1 @@
+Création d'une PWA pour aider les enseignants à trouver des écoles proches d'eux dans l'Isère. Fonctionnalités incluses : géolocalisation, filtres par type, distance, temps, route, carte interactive Leaflet, affichage des résultats et page admin.

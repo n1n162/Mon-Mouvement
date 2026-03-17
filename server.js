@@ -93,6 +93,9 @@ app.post('/api/route/ors', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Serveur lancé sur http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Serveur lancé sur http://localhost:${PORT}`);
+  });
+}
+module.exports = app;
