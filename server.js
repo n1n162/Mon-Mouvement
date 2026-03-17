@@ -91,6 +91,13 @@ app.post('/api/route/ors', async (req, res) => {
     res.status(500).json({ error: "Erreur serveur ORS Directions", details: err.message });
   }
 });
+// ✅ TEST GET TEMPORAIRE
+app.get('/api/matrix/ors', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Route POST /api/matrix/ors prête ! Utilisez POST avec {coordinates: [[lon1,lat1],[lon2,lat2]]}'
+  });
+});
 
 
 module.exports = app;
