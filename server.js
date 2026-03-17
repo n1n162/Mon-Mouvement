@@ -91,13 +91,11 @@ app.post('/api/route/ors', async (req, res) => {
     res.status(500).json({ error: "Erreur serveur ORS Directions", details: err.message });
   }
 });
-curl -X POST https://mon-mouvement-lo8c73a7e-n1n162s-projects.vercel.app/api/matrix/ors \
-  -H "Content-Type: application/json" \
-  -d '{
-    "coordinates": [[2.1,43.2],[2.3,43.4]],
-    "avoid_highways": false
-  }'
 
-
-
+const PORT = process.env.PORT || 5000;
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Serveur lancé sur http://localhost:${PORT}`);
+  });
+}
 module.exports = app;
