@@ -1,9 +1,8 @@
-module.exports = (req, res) => {
-  res.json({ 
-    success: true, 
-    message: '✅ server.js fonctionne parfaitement !',
-    method: req.method,
-    path: req.path,
-    url: req.url
-  });
-};
+const express = require('express');
+const app = express();
+
+app.get('/api/test', (req, res) => {
+  res.json({ success: true, message: '✅ Express fonctionne !' });
+});
+
+module.exports = app;
