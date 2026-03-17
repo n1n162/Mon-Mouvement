@@ -332,8 +332,6 @@ function displaySchoolMarkers(schoolsToShow, filtered) {
     });
 
     marker.on('click', function() {
-      console.log('marker cliqué');
-      alert('clic marker'); // À retirer après test
       this.openPopup();
     });
   });
