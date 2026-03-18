@@ -1,5 +1,5 @@
 [
-  { "code": "01", "nom": "Ain", "actif": true },
+  { "code": "01", "nom": "Ain", "actif": false },
   { "code": "02", "nom": "Aisne", "actif": false },
   { "code": "02A", "nom": "Corse-du-Sud", "actif": false },
   { "code": "02BA", "nom": "Haute-Corse", "actif": false },
@@ -56,7 +56,7 @@
   { "code": "54", "nom": "Meurthe-et-Moselle", "actif": false },
   { "code": "55", "nom": "Meuse", "actif": false },
   { "code": "56", "nom": "Morbihan", "actif": false },
-  { "code": "57", "nom": "Moselle", "actif": false },
+  { "code": "57", "nom": "Moselle", "actif": true },
   { "code": "58", "nom": "Nièvre", "actif": false },
   { "code": "59", "nom": "Nord", "actif": false},
   { "code": "60", "nom": "Oise", "actif": false },
