@@ -275,6 +275,7 @@ function initMapWithSchools(validSchools) {
   }
 
   displaySchoolMarkers(validSchools, false);
+  initZones();
 
     
 }
@@ -719,4 +720,195 @@ function sortResults(key) {
   if (currentSortKey === key) currentSortAsc = !currentSortAsc;
   else { currentSortKey = key; currentSortAsc = true; }
   displayResults(schoolsWithRoutes, currentSortKey, currentSortAsc);
+}
+
+
+// ===== ZONES DE VOEUX =====
+let zonesLayer = null;
+let zonesVisible = false;
+let zonesData = [];
+
+// Charge les zones et crée le bouton dans l'interface
+async function initZones() {
+  try {
+    const res = await fetch('zones_38.json');
+    zonesData = await res.json();
+    createZonesToggleButton();
+  } catch (err) {
+    console.warn('Zones non disponibles :', err.message);
+  }
+}
+
+// Crée le bouton "Afficher les zones" sous la carte
+function createZonesToggleButton() {
+  // Évite les doublons
+  if (document.getElementById('zonesToggleBtn')) return;
+
+  const mapSection = document.getElementById('mapSection');
+  if (!mapSection) return;
+
+  const wrapper = document.createElement('div');
+  wrapper.id = 'zonesWrapper';
+  wrapper.style.cssText = 'margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;';
+
+  const btn = document.createElement('button');
+  btn.id = 'zonesToggleBtn';
+  btn.innerHTML = '🗺️ Afficher les zones de vœux';
+  btn.style.cssText = `
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: background 0.2s;
+  `;
+  btn.addEventListener('click', toggleZones);
+
+  wrapper.appendChild(btn);
+  mapSection.appendChild(wrapper);
+}
+
+// Affiche ou masque les zones
+async function toggleZones() {
+  const btn = document.getElementById('zonesToggleBtn');
+  if (!map) return;
+
+  if (zonesVisible) {
+    // Masquer
+    if (zonesLayer) {
+      map.removeLayer(zonesLayer);
+      zonesLayer = null;
+    }
+    removeLegend();
+    zonesVisible = false;
+    btn.innerHTML = '🗺️ Afficher les zones de vœux';
+    btn.style.background = '#667eea';
+  } else {
+    // Afficher
+    btn.innerHTML = '⏳ Chargement...';
+    btn.disabled = true;
+    await drawZones();
+    zonesVisible = true;
+    btn.innerHTML = '🙈 Masquer les zones';
+    btn.style.background = '#e53e3e';
+    btn.disabled = false;
+  }
+}
+
+// Récupère les contours GeoJSON d'une commune via l'API gouvernementale
+async function getCommuneGeoJSON(nomCommune, codeInseeHint = null) {
+  try {
+    // Recherche par nom dans le département 38
+    const url = `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(nomCommune)}&codeDepartement=38&fields=nom,code,contour&format=json&geometry=contour`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.length > 0 && data[0].contour) {
+      return data[0].contour;
+    }
+  } catch (e) {
+    console.warn(`Contour introuvable pour : ${nomCommune}`);
+  }
+  return null;
+}
+
+// Dessine toutes les zones sur la carte
+async function drawZones() {
+  zonesLayer = L.layerGroup().addTo(map);
+  const legendItems = [];
+
+  for (const zone of zonesData) {
+    const communeFeatures = [];
+
+    for (const nomCommune of zone.communes) {
+      const contour = await getCommuneGeoJSON(nomCommune);
+      if (contour) {
+        communeFeatures.push({
+          type: 'Feature',
+          properties: { nom: nomCommune, zone: zone.nom },
+          geometry: contour
+        });
+      }
+    }
+
+    if (communeFeatures.length === 0) continue;
+
+    const geoJsonLayer = L.geoJSON(
+      { type: 'FeatureCollection', features: communeFeatures },
+      {
+        style: {
+          color: zone.couleur,
+          weight: 1.5,
+          opacity: 0.8,
+          fillColor: zone.couleur,
+          fillOpacity: 0.25
+        },
+        onEachFeature: (feature, layer) => {
+          layer.bindPopup(`
+            <div style="font-family:'Poppins',sans-serif;min-width:160px;">
+              <div style="background:${zone.couleur};color:white;padding:8px 12px;border-radius:6px;margin:-10px -14px 10px -14px;text-align:center;font-weight:600;">
+                ${zone.nom}
+              </div>
+              <div style="font-size:12px;color:#555;">
+                📍 ${feature.properties.nom}
+              </div>
+            </div>
+          `);
+          layer.on('mouseover', function () {
+            this.setStyle({ fillOpacity: 0.5, weight: 2.5 });
+          });
+          layer.on('mouseout', function () {
+            this.setStyle({ fillOpacity: 0.25, weight: 1.5 });
+          });
+        }
+      }
+    );
+
+    geoJsonLayer.addTo(zonesLayer);
+    legendItems.push({ nom: zone.nom, couleur: zone.couleur });
+  }
+
+  addLegend(legendItems);
+}
+
+// Ajoute une légende Leaflet en bas à droite
+function addLegend(items) {
+  removeLegend(); // évite les doublons
+
+  const legend = L.control({ position: 'bottomright' });
+  legend.onAdd = function () {
+    const div = L.DomUtil.create('div', 'zones-legend');
+    div.style.cssText = `
+      background: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      font-family: 'Poppins', sans-serif;
+      font-size: 11px;
+      max-height: 280px;
+      overflow-y: auto;
+      line-height: 1.8;
+    `;
+    div.innerHTML = `<strong style="font-size:12px;">Zones de vœux</strong><br>` +
+      items.map(item => `
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${item.couleur};opacity:0.8;flex-shrink:0;"></span>
+          <span>${item.nom}</span>
+        </div>
+      `).join('');
+    return div;
+  };
+
+  legend.addTo(map);
+  map._zonesLegend = legend;
+}
+
+// Supprime la légende
+function removeLegend() {
+  if (map._zonesLegend) {
+    map.removeControl(map._zonesLegend);
+    map._zonesLegend = null;
+  }
 }
