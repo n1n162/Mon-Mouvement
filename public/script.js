@@ -14,8 +14,7 @@ let selectedSuggestionIndex = -1;
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
   loadDepartments();
-  document.getElementById("geocodeBtn").addEventListener("click", () => getUserLocation()
-  );
+  document.getElementById("geocodeBtn").addEventListener("click", () => getUserLocation());
   setupAddressAutocomplete();
   setupCriterionToggle();
 });
@@ -67,7 +66,6 @@ document.getElementById("departement").addEventListener("change", function () {
     document.getElementById("mapSection").style.display = "block";
     document.getElementById("mapInfo").textContent = `${deptName} - Chargement...`;
     loadSchoolsForDepartment(selectedDepartment, deptName);
-    //getUserLocation();
   } else {
     document.getElementById("mapSection").style.display = "none";
     document.getElementById("searchSection").style.display = "none";
@@ -218,7 +216,7 @@ function setupAddressAutocomplete() {
           });
         });
       } catch { closeSuggestions(); }
-    }, 200); // 200ms au lieu de 300ms, l'API gouv est rapide
+    }, 200);
   });
 
   input.addEventListener("keydown", e => {
@@ -252,6 +250,13 @@ function setupAddressAutocomplete() {
 function initMapWithSchools(validSchools) {
   if (map) map.remove();
 
+  // Réinitialise le cache couleurs et le bouton zones à chaque changement de département
+  zonesVisible = false;
+  zonesLayer = null;
+  Object.keys(communeColorCache).forEach(k => delete communeColorCache[k]);
+  const oldBtn = document.getElementById('zonesWrapper');
+  if (oldBtn) oldBtn.remove();
+
   const center = validSchools.length > 0
     ? [
         validSchools.reduce((s, sc) => s + parseFloat(sc.latitude), 0) / validSchools.length,
@@ -259,10 +264,7 @@ function initMapWithSchools(validSchools) {
       ]
     : [45.1885, 5.7245];
 
-  map = L.map("map", { 
-    tap: false,
-    tapTolerance: 15
-  }).setView(center, 9);
+  map = L.map("map", { tap: false, tapTolerance: 15 }).setView(center, 9);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
   }).addTo(map);
@@ -276,31 +278,35 @@ function initMapWithSchools(validSchools) {
 
   displaySchoolMarkers(validSchools, false);
   initZones();
-
-    
 }
 
-// ===== COULEUR DES MARQUEURS PAR ZONE =====
-
-// Cache des couleurs par commune (rempli au chargement du GeoJSON)
+// ===== ZONES DE VOEUX =====
+let zonesLayer = null;
+let zonesVisible = false;
 const communeColorCache = {};
 
-// À appeler après le chargement de zones_38.geojson
-// On indexe chaque commune → couleur de sa zone
+async function initZones() {
+  try {
+    const res = await fetch('zones_38.geojson', { method: 'HEAD' });
+    if (res.ok) {
+      createZonesToggleButton();
+      await buildCommuneColorCache();
+    }
+  } catch (e) {
+    console.warn('zones_38.geojson non disponible');
+  }
+}
+
 async function buildCommuneColorCache() {
   try {
-    const res = await fetch('zones_38.geojson');
-    const geojson = await res.json();
-    // On recharge aussi zones_38.json pour avoir la liste communes → zone
-    const resZ = await fetch('zones_38.json');
-    const zones = await resZ.json();
+    const res = await fetch('zones_38.json');
+    const zones = await res.json();
     zones.forEach(zone => {
       zone.communes.forEach(commune => {
         communeColorCache[normalizeCommune(commune)] = zone.couleur;
       });
     });
-    console.log(`🎨 Cache couleurs : ${Object.keys(communeColorCache).length} communes indexées`);
-  } catch(e) {
+  } catch (e) {
     console.warn('Cache couleurs zones non disponible', e);
   }
 }
@@ -314,13 +320,10 @@ function normalizeCommune(str) {
 
 function getColorForSchool(school) {
   const commune = school.nom_commune || '';
-  const color = communeColorCache[normalizeCommune(commune)];
-  return color || '#3388ff'; // bleu Leaflet par défaut si hors zone
+  return communeColorCache[normalizeCommune(commune)] || '#3388ff';
 }
 
-// Génère une icône Leaflet de la couleur donnée (via leaflet-color-markers)
 function getMarkerIcon(color) {
-  // Palette de couleurs disponibles dans leaflet-color-markers
   const colorMap = {
     '#4e79a7': 'blue',
     '#f28e2b': 'orange',
@@ -338,7 +341,6 @@ function getMarkerIcon(color) {
     '#f1ce63': 'gold',
     '#3388ff': 'blue'
   };
-
   const colorName = colorMap[color] || 'blue';
   return L.icon({
     iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${colorName}.png`,
@@ -347,7 +349,97 @@ function getMarkerIcon(color) {
   });
 }
 
-// ===== REMPLACE L'ANCIENNE displaySchoolMarkers =====
+function createZonesToggleButton() {
+  if (document.getElementById('zonesToggleBtn')) return;
+  const mapSection = document.getElementById('mapSection');
+  if (!mapSection) return;
+
+  const wrapper = document.createElement('div');
+  wrapper.id = 'zonesWrapper';
+  wrapper.style.cssText = 'margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;';
+
+  const btn = document.createElement('button');
+  btn.id = 'zonesToggleBtn';
+  btn.innerHTML = '🗺️ Afficher les zones de vœux';
+  btn.style.cssText = `
+    background:#667eea;color:white;border:none;padding:8px 16px;
+    border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;
+  `;
+  btn.addEventListener('click', toggleZones);
+  wrapper.appendChild(btn);
+  mapSection.appendChild(wrapper);
+}
+
+async function toggleZones() {
+  const btn = document.getElementById('zonesToggleBtn');
+  if (!map) return;
+
+  if (zonesVisible) {
+    if (zonesLayer) { map.removeLayer(zonesLayer); zonesLayer = null; }
+    if (map._zonesLegend) { map.removeControl(map._zonesLegend); map._zonesLegend = null; }
+    zonesVisible = false;
+    btn.innerHTML = '🗺️ Afficher les zones de vœux';
+    btn.style.background = '#667eea';
+  } else {
+    btn.innerHTML = '⏳ Chargement...';
+    btn.disabled = true;
+    await drawZones();
+    zonesVisible = true;
+    btn.innerHTML = '🙈 Masquer les zones';
+    btn.style.background = '#e53e3e';
+    btn.disabled = false;
+  }
+}
+
+async function drawZones() {
+  const res = await fetch('zones_38.geojson');
+  const geojson = await res.json();
+
+  zonesLayer = L.geoJSON(geojson, {
+    style: feature => ({
+      color: feature.properties.couleur,
+      weight: 2,
+      opacity: 0.9,
+      fillColor: feature.properties.couleur,
+      fillOpacity: 0.25
+    }),
+    onEachFeature: (feature, layer) => {
+      layer.bindPopup(`
+        <div style="font-family:'Poppins',sans-serif;min-width:160px;">
+          <div style="background:${feature.properties.couleur};color:white;padding:8px 12px;
+            border-radius:6px;margin:-10px -14px 10px -14px;text-align:center;font-weight:600;">
+            ${feature.properties.nom}
+          </div>
+          <div style="font-size:12px;color:#555;">
+            📍 ${feature.properties.nb_communes} communes
+          </div>
+        </div>
+      `);
+      layer.on('mouseover', function () { this.setStyle({ fillOpacity: 0.5, weight: 3 }); });
+      layer.on('mouseout', function () { this.setStyle({ fillOpacity: 0.25, weight: 2 }); });
+    }
+  }).addTo(map);
+
+  const legend = L.control({ position: 'bottomright' });
+  legend.onAdd = () => {
+    const div = L.DomUtil.create('div');
+    div.style.cssText = `background:white;padding:10px 14px;border-radius:10px;
+      box-shadow:0 2px 12px rgba(0,0,0,0.15);font-family:'Poppins',sans-serif;
+      font-size:11px;max-height:280px;overflow-y:auto;line-height:1.8;`;
+    div.innerHTML = '<strong style="font-size:12px;">Zones de vœux</strong><br>' +
+      geojson.features.map(f => `
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="display:inline-block;width:14px;height:14px;border-radius:3px;
+            background:${f.properties.couleur};opacity:0.8;flex-shrink:0;"></span>
+          <span>${f.properties.nom}</span>
+        </div>`).join('');
+    return div;
+  };
+  legend.addTo(map);
+  map._zonesLegend = legend;
+}
+
+// ===== SCHOOL MARKERS =====
 function displaySchoolMarkers(schoolsToShow, filtered) {
   map.eachLayer(layer => {
     if (layer instanceof L.Marker && (!userMarker || layer !== userMarker)) {
@@ -372,7 +464,7 @@ function displaySchoolMarkers(schoolsToShow, filtered) {
 
     const popupContent = `
       <div style="width:200px;font-family:'Poppins',sans-serif;font-size:13px;">
-        <div style="background:linear-gradient(135deg,${color} 0%,${color}cc 100%);color:white;padding:10px 14px;border-radius:8px;margin:-10px -14px 12px -14px;text-align:center;">
+        <div style="background:${color};color:white;padding:10px 14px;border-radius:8px;margin:-10px -14px 12px -14px;text-align:center;">
           <strong>${school.nom_etablissement}</strong>
           ${filtered && school.distanceKm ? `<br><small style="opacity:0.9;">${school.distanceKm}km • ${school.durationMin}min</small>` : ''}
         </div>
@@ -390,12 +482,11 @@ function displaySchoolMarkers(schoolsToShow, filtered) {
       autoClose: true
     });
 
-    marker.on('click', function() { this.openPopup(); });
+    marker.on('click', function () { this.openPopup(); });
   });
 
   if (userMarker && map) userMarker.addTo(map);
 }
-
 
 // ===== HAVERSINE =====
 function haversine(lat1, lon1, lat2, lon2) {
@@ -484,8 +575,7 @@ async function showRouteToSchool(schoolIndex) {
       const bounds = L.latLngBounds(coords);
       bounds.extend([userPosition.lat, userPosition.lng]);
       map.fitBounds(bounds, { padding: [20, 20] });
-      const mapEl = document.getElementById("map");
-      mapEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "center" });
     }
   } catch (err) {
     alert("Erreur affichage route : " + err.message);
@@ -523,7 +613,6 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
 
   document.getElementById("resultsSection").style.display = "block";
 
-  // Filtres statiques
   let step = schools.filter(s => s.latitude && s.longitude);
   if (type) step = step.filter(s => s.type === type);
   if (statut) step = step.filter(s => s.statut_public_prive === statut);
@@ -536,20 +625,14 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
     step = step.filter(s => s.appartenance_education_prioritaire === educationPrioritaire);
   }
 
-  // Pré-filtre haversine pour limiter les appels API ORS
-  // Pour distance : on garde une marge de 30% (routes plus longues qu'à vol d'oiseau)
-  // Pour temps : on estime ~2 km/min en moyenne (120 km/h), marge très large
   const haversineRadius = criterion === 'distance' ? criterionValue * 1.3 : criterionValue * 2.5;
-  console.log(`🔭 Rayon haversine = ${haversineRadius.toFixed(1)} km (critère=${criterion}, valeur=${criterionValue})`);
 
-  const stepBefore = step.length;
   step.sort((a, b) => {
     const da = haversine(userPosition.lat, userPosition.lng, parseFloat(a.latitude), parseFloat(a.longitude));
     const db = haversine(userPosition.lat, userPosition.lng, parseFloat(b.latitude), parseFloat(b.longitude));
     return da - db;
   });
   const preFiltered = step.slice(0, 300);
-  console.log(`🔽 Envoi à ORS : ${preFiltered.length} écoles`);
 
   if (!preFiltered.length) {
     document.getElementById("results").innerHTML =
@@ -569,14 +652,6 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
       distanceKm: (matrix.distances[0][i] / 1000).toFixed(2)
     }));
 
-    // Filtre final selon le critère choisi
-    console.log(`🔍 Filtre: critère=${criterion}, limite=${criterionValue}`);
-    detailed.forEach(s => {
-      const val = criterion === 'distance' ? parseFloat(s.distanceKm) : s.durationMin;
-      const raw = criterion === 'distance' ? s.distanceKm : s.durationMin;
-      console.log(`  ${s.nom_etablissement}: ${s.distanceKm}km, ${s.durationMin}min → valeur comparée=${raw} <= ${criterionValue} ? ${val <= criterionValue ? '✅' : '❌'}`);
-    });
-
     const filtered = detailed.filter(school =>
       criterion === 'distance'
         ? parseFloat(school.distanceKm) <= criterionValue
@@ -586,9 +661,7 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
     const critLabel = criterion === 'distance'
       ? `≤ ${criterionValue} km`
       : `≤ ${criterionValue} min de trajet`;
-    console.log(`✅ ${filtered.length} écoles correspondent au critère (${critLabel})`);
 
-    // Résumé affiché avant le tableau (classe résumé-résultats pour persistance lors du tri)
     const summaryHTML = `<div class="results-summary" style="background:#ebf8ff;border:1px solid #90cdf4;border-radius:8px;padding:8px 14px;margin-bottom:10px;font-size:13px;color:#2c5282;">
       <i class="fas fa-info-circle"></i>
       <strong>${filtered.length} école(s) trouvée(s)</strong> avec un trajet ${critLabel}
@@ -596,11 +669,9 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
     </div>`;
     document.getElementById("results").innerHTML = summaryHTML;
 
-    // Déterminer le tri initial selon le critère choisi
     currentSortKey = (criterion === 'distance') ? 'distance' : 'time';
     currentSortAsc = true;
 
-    // Trier immédiatement
     let sorted = [...filtered];
     if (currentSortKey === 'distance') {
       sorted.sort((a, b) => parseFloat(a.distanceKm) - parseFloat(b.distanceKm));
@@ -609,7 +680,6 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
     }
 
     schoolsWithRoutes = sorted;
-
     clearAllRoutes();
     displayResults(sorted, currentSortKey, currentSortAsc);
     displaySchoolMarkers(filtered, true);
@@ -639,7 +709,7 @@ document.getElementById("resetBtn").addEventListener("click", () => {
   }
 });
 
-// AJOUTE CETTE FONCTION avant displayResults()
+// ===== SCHOOL DETAILS MODAL =====
 function showSchoolDetails(school, index) {
   const modal = document.createElement('div');
   modal.id = 'schoolModal';
@@ -655,7 +725,6 @@ function showSchoolDetails(school, index) {
         ${school.distanceKm ? `<p style="margin:5px 0 0 0;font-size:0.9rem;opacity:0.9;">📏 ${school.distanceKm}km • ⏱️ ${school.durationMin}min</p>` : ''}
         <button onclick="document.getElementById('schoolModal').remove()" style="position:absolute;top:15px;right:15px;background:none;border:none;color:white;font-size:1.5rem;cursor:pointer;">×</button>
       </div>
-
       <div style="padding:24px;">
         <div style="display:grid;grid-template-columns:1fr 2fr;gap:12px 16px;margin-bottom:20px;font-size:13px;">
           <span style="font-weight:600;color:#555;">RNE</span><span>${school.identifiant_de_l_etablissement}</span>
@@ -663,31 +732,24 @@ function showSchoolDetails(school, index) {
           <span style="font-weight:600;color:#555;">Type</span><span>${school.type}</span>
           <span style="font-weight:600;color:#555;">Circonscription</span><span>${school.nom_circonscription || '-'}</span>
         </div>
-
         <div style="background:#f8f9fa;padding:16px;border-radius:12px;margin-bottom:20px;font-size:13px;">
           <i class="fas fa-map-marker-alt" style="color:#667eea;margin-right:8px;"></i>
           <strong>Adresse :</strong><br>${school.adresse_1 || ''}${school.adresse_2 ? ', ' + school.adresse_2 : ''}, ${school.code_postal} ${school.nom_commune}
         </div>
-
         <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;font-size:12px;">
           ${school.nombre_d_eleves ? `<span style="background:#dbeafe;color:#1e40af;padding:8px 12px;border-radius:8px;font-weight:500;"><i class="fas fa-users"></i> ${school.nombre_d_eleves} élèves</span>` : ''}
           ${school.ulis ? `<span style="background:#ecfdf5;color:#059669;padding:8px 12px;border-radius:8px;font-weight:500;"><i class="fas fa-universal-access"></i> ULIS ${school.ulis}</span>` : ''}
           ${school.appartenance_education_prioritaire ? `<span style="background:#fef3c7;color:#92400e;padding:8px 12px;border-radius:8px;font-weight:500;"><i class="fas fa-star"></i> ${school.appartenance_education_prioritaire}</span>` : ''}
         </div>
-
         <div style="display:grid;gap:12px;font-size:13px;">
           ${school.telephone ? `<div style="display:flex;align-items:center;gap:10px;"><i class="fas fa-phone" style="color:#10b981;width:20px;"></i><a href="tel:${school.telephone.replace(/\s/g, '')}" style="color:#10b981;font-weight:500;">${school.telephone}</a></div>` : ''}
           ${school.web ? `<div style="display:flex;align-items:center;gap:10px;"><i class="fas fa-globe" style="color:#3b82f6;width:20px;"></i><a href="${school.web.startsWith('http') ? school.web : 'https://'+school.web}" target="_blank" style="color:#3b82f6;font-weight:500;">Site web</a></div>` : ''}
           ${school.mail ? `<div style="display:flex;align-items:center;gap:10px;"><i class="fas fa-envelope" style="color:#ec4899;width:20px;"></i><a href="mailto:${school.mail}" style="color:#ec4899;font-weight:500;">${school.mail}</a></div>` : ''}
         </div>
-
         ${school.date_maj_ligne ? `<div style="margin-top:20px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:11px;color:#6b7280;text-align:right;"><i class="fas fa-calendar-alt"></i> ${school.date_maj_ligne}</div>` : ''}
-
         ${schoolsWithRoutes.length > 0 ? `
         <div style="margin-top:20px;padding:16px;background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%);border-radius:12px;border-left:4px solid #3b82f6;">
-          <div style="text-align:center;font-weight:600;color:#1e40af;margin-bottom:12px;">
-            <i class="fas fa-road"></i> Actions rapides
-          </div>
+          <div style="text-align:center;font-weight:600;color:#1e40af;margin-bottom:12px;"><i class="fas fa-road"></i> Actions rapides</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
             <button onclick="showRouteToSchool(${index});document.getElementById('schoolModal').remove();return false;" style="background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%);color:white;border:none;padding:12px;border-radius:8px;cursor:pointer;font-weight:600;">🛣️ Itinéraire</button>
             <button onclick="clearAllRoutes();return false;" style="background:#f1f5f9;color:#64748b;border:1px solid #cbd5e1;padding:12px;border-radius:8px;cursor:pointer;font-weight:600;">🗑️ Effacer</button>
@@ -698,13 +760,8 @@ function showSchoolDetails(school, index) {
   `;
 
   document.body.appendChild(modal);
-
-  // Fermeture au clic extérieur
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) modal.remove();
-  });
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
 }
-
 
 // ===== RESULTS TABLE =====
 function displayResults(results, sortKey = currentSortKey, sortAsc = currentSortAsc) {
@@ -770,117 +827,8 @@ function displayResults(results, sortKey = currentSortKey, sortAsc = currentSort
   `;
 }
 
-
 function sortResults(key) {
   if (currentSortKey === key) currentSortAsc = !currentSortAsc;
   else { currentSortKey = key; currentSortAsc = true; }
   displayResults(schoolsWithRoutes, currentSortKey, currentSortAsc);
-}
-
-
-// ===== ZONES DE VOEUX (V2 - GeoJSON pré-calculé) =====
-let zonesLayer = null;
-let zonesVisible = false;
-
-async function initZones() {
-  // Vérifie que le fichier existe avant de créer le bouton
-  try {
-    const res = await fetch('zones_38.geojson', { method: 'HEAD' });
-    if (res.ok) createZonesToggleButton();
-    await buildCommuneColorCache();
-   }
-  } catch (e) {
-    console.warn('zones_38.geojson non disponible');
-  }
-}
-
-function createZonesToggleButton() {
-  if (document.getElementById('zonesToggleBtn')) return;
-  const mapSection = document.getElementById('mapSection');
-  if (!mapSection) return;
-
-  const wrapper = document.createElement('div');
-  wrapper.id = 'zonesWrapper';
-  wrapper.style.cssText = 'margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;';
-
-  const btn = document.createElement('button');
-  btn.id = 'zonesToggleBtn';
-  btn.innerHTML = '🗺️ Afficher les zones de vœux';
-  btn.style.cssText = `
-    background:#667eea;color:white;border:none;padding:8px 16px;
-    border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;
-  `;
-  btn.addEventListener('click', toggleZones);
-  wrapper.appendChild(btn);
-  mapSection.appendChild(wrapper);
-}
-
-async function toggleZones() {
-  const btn = document.getElementById('zonesToggleBtn');
-  if (!map) return;
-
-  if (zonesVisible) {
-    if (zonesLayer) { map.removeLayer(zonesLayer); zonesLayer = null; }
-    if (map._zonesLegend) { map.removeControl(map._zonesLegend); map._zonesLegend = null; }
-    zonesVisible = false;
-    btn.innerHTML = '🗺️ Afficher les zones de vœux';
-    btn.style.background = '#667eea';
-  } else {
-    btn.innerHTML = '⏳ Chargement...';
-    btn.disabled = true;
-    await drawZones();
-    zonesVisible = true;
-    btn.innerHTML = '🙈 Masquer les zones';
-    btn.style.background = '#e53e3e';
-    btn.disabled = false;
-  }
-}
-
-async function drawZones() {
-  const res = await fetch('zones_38.geojson');
-  const geojson = await res.json();
-
-  zonesLayer = L.geoJSON(geojson, {
-    style: feature => ({
-      color: feature.properties.couleur,
-      weight: 2,
-      opacity: 0.9,
-      fillColor: feature.properties.couleur,
-      fillOpacity: 0.25
-    }),
-    onEachFeature: (feature, layer) => {
-      layer.bindPopup(`
-        <div style="font-family:'Poppins',sans-serif;min-width:160px;">
-          <div style="background:${feature.properties.couleur};color:white;padding:8px 12px;
-            border-radius:6px;margin:-10px -14px 10px -14px;text-align:center;font-weight:600;">
-            ${feature.properties.nom}
-          </div>
-          <div style="font-size:12px;color:#555;">
-            📍 ${feature.properties.nb_communes} communes
-          </div>
-        </div>
-      `);
-      layer.on('mouseover', function() { this.setStyle({ fillOpacity: 0.5, weight: 3 }); });
-      layer.on('mouseout',  function() { this.setStyle({ fillOpacity: 0.25, weight: 2 }); });
-    }
-  }).addTo(map);
-
-  // Légende
-  const legend = L.control({ position: 'bottomright' });
-  legend.onAdd = () => {
-    const div = L.DomUtil.create('div');
-    div.style.cssText = `background:white;padding:10px 14px;border-radius:10px;
-      box-shadow:0 2px 12px rgba(0,0,0,0.15);font-family:'Poppins',sans-serif;
-      font-size:11px;max-height:280px;overflow-y:auto;line-height:1.8;`;
-    div.innerHTML = '<strong style="font-size:12px;">Zones de vœux</strong><br>' +
-      geojson.features.map(f => `
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span style="display:inline-block;width:14px;height:14px;border-radius:3px;
-            background:${f.properties.couleur};opacity:0.8;flex-shrink:0;"></span>
-          <span>${f.properties.nom}</span>
-        </div>`).join('');
-    return div;
-  };
-  legend.addTo(map);
-  map._zonesLegend = legend;
 }
