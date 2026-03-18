@@ -316,6 +316,7 @@ async function buildCommuneColorCache() {
 
 function normalizeCommune(str) {
   return str.toLowerCase()
+    .replace(/œ/g, 'oe').replace(/æ/g, 'ae').replace(/ß/g, 'ss')
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[-'\s]+/g, ' ')
     .trim();
