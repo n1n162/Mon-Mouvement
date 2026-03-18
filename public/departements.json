@@ -1,5 +1,5 @@
 [
-  { "code": "01", "nom": "Ain", "actif": false },
+  { "code": "01", "nom": "Ain", "actif": true },
   { "code": "02", "nom": "Aisne", "actif": false },
   { "code": "02A", "nom": "Corse-du-Sud", "actif": false },
   { "code": "02BA", "nom": "Haute-Corse", "actif": false },
