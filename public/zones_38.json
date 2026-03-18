@@ -7,11 +7,12 @@
       "Allevard","Barraux","Bernin","Biviers","Chapareillan","Le Cheylas",
       "Crets-en-Belledonne","Crolles","Domène","Froges","Goncelin","La Buissière",
       "La Chapelle-du-Bard","La Combe-de-Lancey","La Flachère","La Pierre","La Terrasse",
-      "Laval","Le Champ-près-Froges","Le Haut-Bréda","Le Touvet","Le Versoud","Les Adrets",
-      "Lumbin","Murianette","Pontcharra","Revel","Saint-Ismier","Saint-Maximin",
-      "Saint-Martin-d'Uriage","Saint-Mury-Monteymond","Saint-Nazaire-les-Eymes",
-      "Saint-Vincent-de-Mercuze","Sainte-Agnès","Sainte-Marie-d'Alloix","Tencin","Theys",
-      "Venon","Villard-Bonnot"
+      "Laval","Laval-en-Belledonne","Le Champ-près-Froges","Le Haut-Bréda","Le Touvet",
+      "Le Versoud","Les Adrets","Lumbin","Murianette","Pontcharra","Revel",
+      "Saint-Ismier","Saint-Maximin","Saint-Martin-d'Uriage","Saint-Mury-Monteymond",
+      "Saint-Nazaire-les-Eymes","Saint-Vincent-de-Mercuze","Sainte-Agnès",
+      "Sainte-Marie-d'Alloix","Tencin","Theys","Venon","Villard-Bonnot",
+      "Plateau-des-Petites-Roches"
     ]
   },
   {
@@ -20,10 +21,13 @@
     "couleur": "#f28e2b",
     "communes": [
       "Bresson","Brié-et-Angonnes","Champagnier","Corenc","Echirolles","Eybens","Fontaine",
-      "Le Fontanil-Cornillon","Gières","Grenoble","Herbeys","Jarrie","La Tronche",
-      "Le Pont-de-Claix","Le Sappey-en-Chartreuse","Meylan","Montbonnot-Saint-Martin",
-      "Noyarey","Poisat","Sassenage","Seyssinet-Pariset","Seyssins","Saint-Egrève",
-      "Saint-Martin-d'Hères","Saint-Martin-le-Vinoux","Veurey-Voroize","Voreppe"
+      "Fontanil-Cornillon","Le Fontanil-Cornillon","Gières","Grenoble","Herbeys","Jarrie",
+      "La Tronche","Le Pont-de-Claix","Le Sappey-en-Chartreuse","Meylan",
+      "Montbonnot-Saint-Martin","Noyarey","Poisat","Sassenage","Seyssinet-Pariset",
+      "Seyssins","Saint-Egrève","Saint-Martin-d'Hères","Saint-Martin-le-Vinoux",
+      "Veurey-Voroize","Voreppe","Chamrousse","Autrans-Méaudre en Vercors",
+      "Autrans-Méaudre-en-Vercors","Engins","Corrençon-en-Vercors","Lans-en-Vercors",
+      "Saint-Nizier-du-Moucherotte","Villard-de-Lans"
     ]
   },
   {
@@ -31,9 +35,10 @@
     "nom": "Oisans",
     "couleur": "#e15759",
     "communes": [
-      "Allemont","Auris-en-Oisans","Champ-sur-Drac","Huez","La Morte","Le Bourg-d'Oisans",
-      "Le Freney-d'Oisans","Les Deux Alpes","Livet-et-Gavet","Mizoën","Séchilienne",
-      "Saint-Barthélémy-de-Séchilienne","Vaulnaveys-le-Bas","Vaulnaveys-le-Haut","Vizille"
+      "Allemont","Allemond","Auris-en-Oisans","Auris","Champ-sur-Drac","Huez","La Morte",
+      "Le Bourg-d'Oisans","Le Freney-d'Oisans","Les Deux Alpes","Livet-et-Gavet","Mizoën",
+      "Séchilienne","Saint-Barthélémy-de-Séchilienne","Saint-Barthélemy",
+      "Vaulnaveys-le-Bas","Vaulnaveys-le-Haut","Vizille"
     ]
   },
   {
@@ -41,12 +46,12 @@
     "nom": "Trièves",
     "couleur": "#76b7b2",
     "communes": [
-      "Avignonet","Chichilianne","Claix","Clelles-en-Trièves","Châtel-en-Trièves",
+      "Avignonet","Chichilianne","Claix","Clelles","Clelles-en-Trièves","Châtel-en-Trièves",
       "Gresse-en-Vercors","Le Gua","Le Monestier-du-Percy","Mens","Miribel-Lanchâtre",
       "Monestier-de-Clermont","Notre-Dame-de-Commiers","Notre-Dame-de-Mésage","Sinard",
       "Saint-Andéol","Saint-Georges-de-Commiers","Saint-Guillaume","Saint-Jean-d'Hérans",
       "Saint-Martin-de-la-Cluze","Saint-Maurice-en-Trièves","Saint-Paul-de-Varces",
-      "Saint-Pierre-de-Mésage","Tréminis","Varces-Allières-et-Risset","Vif"
+      "Saint-Pierre-de-Mésage","Tréminis","Varces-Allières-et-Risset","Vif","Roissard"
     ]
   },
   {
@@ -55,9 +60,10 @@
     "couleur": "#59a14f",
     "communes": [
       "Corps","Entraigues","La Motte-d'Aveillans","La Motte-Saint-Martin","La Mure",
-      "La Salle-en-Beaumont","Laffrey","Monteynard","Nantes-en-Rattier","Notre-Dame-de-Vaulx",
-      "Pierre-Châtel","Prunières","Saint-Honoré","Saint-Jean-de-Vaulx",
-      "Saint-Laurent-en-Beaumont","Susville","Valbonnais","Villard-Saint-Christophe"
+      "La Salle-en-Beaumont","Laffrey","Saint-Théoffrey","Monteynard",
+      "Nantes-en-Rattier","Nantes-en-Ratier","Notre-Dame-de-Vaulx","Pierre-Châtel",
+      "Prunières","Saint-Honoré","Saint-Jean-de-Vaulx","Saint-Laurent-en-Beaumont",
+      "Susville","Valbonnais","Villard-Saint-Christophe"
     ]
   },
   {
@@ -72,7 +78,9 @@
       "Saint-Aupre","Saint-Bueil","Saint-Cassien","Saint-Etienne-de-Crossey",
       "Saint-Geoire-en-Valdaine","Saint-Jean-d'Avelanne","Saint-Jean-de-Moirans",
       "Saint-Joseph-de-Rivière","Saint-Laurent-du-Pont","Saint-Nicolas-de-Macherin",
-      "Saint-Sulpice-des-Rivoires","Velanne","Voiron","Vourey"
+      "Saint-Sulpice-des-Rivoires","Velanne","Voiron","Vourey",
+      "Entre-deux-Guiers","Miribel-les-Echelles","Proveysieux","Quaix-en-Chartreuse",
+      "Saint-Christophe-sur-Guiers","Saint-Pierre-de-Chartreuse"
     ]
   },
   {
@@ -111,12 +119,12 @@
     "couleur": "#9c755f",
     "communes": [
       "Eclose-Badinières","Belmont","Biol","Bizonnes","Cessieu","Châbons","Champier",
-      "Châteauvilain","Chatonnay","Chélieu","Crachier","Culin-Tramolé","Doissin","Eydoche",
-      "Flachères","Le Mottier","Les Eparres","Lieudieu","Longechenal","Maubec",
-      "Meyrieu-les-Etangs","Montagnieu","Montrevel","Nivolas-Vermelle","Porte-des-Bonnevaux",
-      "Ruy","Sérézin-de-la-Tour","Saint-Agnin-sur-Bion","Saint-Didier-de-Bizonnes",
-      "Saint-Victor-de-Cessieu","Sainte-Anne-sur-Gervonde","Sainte-Blandine","Succieu",
-      "Torchefelon","Val-de-Virieu"
+      "Châteauvilain","Chatonnay","Chélieu","Crachier","Culin","Culin-Tramolé","Doissin",
+      "Eydoche","Flachères","Le Mottier","Mottier","Les Eparres","Lieudieu","Longechenal",
+      "Maubec","Meyrieu-les-Etangs","Montagnieu","Montrevel","Nivolas-Vermelle",
+      "Porte-des-Bonnevaux","Ruy","Ruy-Montceau","Sérézin-de-la-Tour",
+      "Saint-Agnin-sur-Bion","Saint-Didier-de-Bizonnes","Saint-Victor-de-Cessieu",
+      "Sainte-Anne-sur-Gervonde","Sainte-Blandine","Succieu","Torchefelon","Val-de-Virieu"
     ]
   },
   {
