@@ -250,12 +250,18 @@ function setupAddressAutocomplete() {
 function initMapWithSchools(validSchools) {
   if (map) map.remove();
 
-  // Réinitialise le cache couleurs et le bouton zones à chaque changement de département
-  zonesVisible = false;
-  zonesLayer = null;
-  Object.keys(communeColorCache).forEach(k => delete communeColorCache[k]);
-  const oldBtn = document.getElementById('zonesWrapper');
-  if (oldBtn) oldBtn.remove();
+  // Nettoyer les zones
+if (zonesLayer && map) { map.removeLayer(zonesLayer); }
+zonesLayer = null;
+zonesVisible = false;
+if (map && map._zonesLegend) { map.removeControl(map._zonesLegend); map._zonesLegend = null; }
+
+// Vider le cache des couleurs
+Object.keys(communeColorCache).forEach(k => delete communeColorCache[k]);
+
+// Supprimer le bouton
+const oldBtn = document.getElementById('zonesWrapper');
+if (oldBtn) oldBtn.remove();
 
   const center = validSchools.length > 0
     ? [
