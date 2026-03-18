@@ -242,14 +242,11 @@ function setupAddressAutocomplete() {
 
 // ===== MAP =====
 function resetZones() {
-  // Nettoyer zones AVANT map.remove()
-  if (zonesLayer && map) { map.removeLayer(zonesLayer); }
+  if (zonesLayer && map) map.removeLayer(zonesLayer);
   zonesLayer = null;
   zonesVisible = false;
   if (map && map._zonesLegend) { map.removeControl(map._zonesLegend); map._zonesLegend = null; }
-  // Vider le cache couleurs
   Object.keys(communeColorCache).forEach(k => delete communeColorCache[k]);
-  // Supprimer le bouton
   const oldBtn = document.getElementById('zonesWrapper');
   if (oldBtn) oldBtn.remove();
 }
@@ -277,6 +274,7 @@ function initMapWithSchools(validSchools) {
     );
   }
 
+  // Attendre que le cache soit prêt avant d'afficher les marqueurs
   initZones(true).then(() => {
     displaySchoolMarkers(validSchools, false);
   });
@@ -376,6 +374,7 @@ async function toggleZones() {
 async function drawZones() {
   const res = await fetch(`zones_${selectedDepartment}.geojson`);
   const geojson = await res.json();
+
   zonesLayer = L.geoJSON(geojson, {
     style: feature => ({
       color: feature.properties.couleur,
@@ -395,16 +394,39 @@ async function drawZones() {
     }
   }).addTo(map);
 
+  // Légende repliable
   const legend = L.control({ position: 'bottomright' });
   legend.onAdd = () => {
     const div = L.DomUtil.create('div');
-    div.style.cssText = 'background:white;padding:10px 14px;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.15);font-family:Poppins,sans-serif;font-size:11px;max-height:280px;overflow-y:auto;line-height:1.8;';
-    div.innerHTML = '<strong style="font-size:12px;">Zones de vœux</strong><br>' +
-      geojson.features.map(f => `
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${f.properties.couleur};opacity:0.8;flex-shrink:0;"></span>
-          <span>${f.properties.nom}</span>
-        </div>`).join('');
+    div.style.cssText = 'background:white;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.15);font-family:Poppins,sans-serif;font-size:11px;overflow:hidden;';
+
+    // En-tête cliquable
+    const header = document.createElement('div');
+    header.style.cssText = 'padding:8px 12px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:600;font-size:12px;user-select:none;';
+    header.innerHTML = '<span>🗺️ Zones de vœux</span><span id="legendArrow" style="transition:transform 0.2s;">▲</span>';
+
+    // Corps repliable
+    const body = document.createElement('div');
+    body.id = 'legendBody';
+    body.style.cssText = 'padding:6px 12px 10px;max-height:240px;overflow-y:auto;line-height:1.8;border-top:1px solid #e5e7eb;';
+    body.innerHTML = geojson.features.map(f => `
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${f.properties.couleur};flex-shrink:0;"></span>
+        <span>${f.properties.nom}</span>
+      </div>`).join('');
+
+    let collapsed = false;
+    header.addEventListener('click', () => {
+      collapsed = !collapsed;
+      body.style.display = collapsed ? 'none' : 'block';
+      document.getElementById('legendArrow').style.transform = collapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+    });
+
+    // Empêcher les clics sur la légende de se propager à la carte
+    L.DomEvent.disableClickPropagation(div);
+
+    div.appendChild(header);
+    div.appendChild(body);
     return div;
   };
   legend.addTo(map);
