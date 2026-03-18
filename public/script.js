@@ -325,31 +325,18 @@ function getColorForSchool(school) {
 }
 
 function getMarkerIcon(color) {
-  const colorMap = {
-    '#4e79a7': 'blue',
-    '#f28e2b': 'orange',
-    '#e15759': 'red',
-    '#76b7b2': 'cadetblue',
-    '#59a14f': 'green',
-    '#edc948': 'gold',
-    '#b07aa1': 'violet',
-    '#ff9da7': 'pink',
-    '#9c755f': 'beige',
-    '#bab0ac': 'grey',
-    '#d37295': 'pink',
-    '#8cd17d': 'lightgreen',
-    '#86bcb6': 'cadetblue',
-    '#f1ce63': 'gold',
-    '#3388ff': 'blue'
-  };
-  const colorName = colorMap[color] || 'blue';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 25 41" width="25" height="41">
+    <path d="M12.5 0C5.6 0 0 5.6 0 12.5c0 9.4 12.5 28.5 12.5 28.5S25 21.9 25 12.5C25 5.6 19.4 0 12.5 0z" fill="${color}" stroke="white" stroke-width="1.5"/>
+    <circle cx="12.5" cy="12.5" r="5" fill="white" opacity="0.8"/>
+  </svg>`;
+  const url = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
   return L.icon({
-    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${colorName}.png`,
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+    iconUrl: url,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34]
   });
 }
-
 function createZonesToggleButton() {
   if (document.getElementById('zonesToggleBtn')) return;
   const mapSection = document.getElementById('mapSection');
