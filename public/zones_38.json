@@ -1,0 +1,190 @@
+[
+  {
+    "id": "porte-de-la-savoie",
+    "nom": "Porte de la Savoie",
+    "couleur": "#4e79a7",
+    "communes": [
+      "Allevard","Barraux","Bernin","Biviers","Chapareillan","Le Cheylas",
+      "Crets-en-Belledonne","Crolles","Domène","Froges","Goncelin","La Buissière",
+      "La Chapelle-du-Bard","La Combe-de-Lancey","La Flachère","La Pierre","La Terrasse",
+      "Laval","Le Champ-près-Froges","Le Haut-Bréda","Le Touvet","Le Versoud","Les Adrets",
+      "Lumbin","Murianette","Pontcharra","Revel","Saint-Ismier","Saint-Maximin",
+      "Saint-Martin-d'Uriage","Saint-Mury-Monteymond","Saint-Nazaire-les-Eymes",
+      "Saint-Vincent-de-Mercuze","Sainte-Agnès","Sainte-Marie-d'Alloix","Tencin","Theys",
+      "Venon","Villard-Bonnot"
+    ]
+  },
+  {
+    "id": "grand-grenoble",
+    "nom": "Grand Grenoble",
+    "couleur": "#f28e2b",
+    "communes": [
+      "Bresson","Brié-et-Angonnes","Champagnier","Corenc","Echirolles","Eybens","Fontaine",
+      "Le Fontanil-Cornillon","Gières","Grenoble","Herbeys","Jarrie","La Tronche",
+      "Le Pont-de-Claix","Le Sappey-en-Chartreuse","Meylan","Montbonnot-Saint-Martin",
+      "Noyarey","Poisat","Sassenage","Seyssinet-Pariset","Seyssins","Saint-Egrève",
+      "Saint-Martin-d'Hères","Saint-Martin-le-Vinoux","Veurey-Voroize","Voreppe"
+    ]
+  },
+  {
+    "id": "oisans",
+    "nom": "Oisans",
+    "couleur": "#e15759",
+    "communes": [
+      "Allemont","Auris-en-Oisans","Champ-sur-Drac","Huez","La Morte","Le Bourg-d'Oisans",
+      "Le Freney-d'Oisans","Les Deux Alpes","Livet-et-Gavet","Mizoën","Séchilienne",
+      "Saint-Barthélémy-de-Séchilienne","Vaulnaveys-le-Bas","Vaulnaveys-le-Haut","Vizille"
+    ]
+  },
+  {
+    "id": "trieves",
+    "nom": "Trièves",
+    "couleur": "#76b7b2",
+    "communes": [
+      "Avignonet","Chichilianne","Claix","Clelles-en-Trièves","Châtel-en-Trièves",
+      "Gresse-en-Vercors","Le Gua","Le Monestier-du-Percy","Mens","Miribel-Lanchâtre",
+      "Monestier-de-Clermont","Notre-Dame-de-Commiers","Notre-Dame-de-Mésage","Sinard",
+      "Saint-Andéol","Saint-Georges-de-Commiers","Saint-Guillaume","Saint-Jean-d'Hérans",
+      "Saint-Martin-de-la-Cluze","Saint-Maurice-en-Trièves","Saint-Paul-de-Varces",
+      "Saint-Pierre-de-Mésage","Tréminis","Varces-Allières-et-Risset","Vif"
+    ]
+  },
+  {
+    "id": "matheysine",
+    "nom": "Matheysine",
+    "couleur": "#59a14f",
+    "communes": [
+      "Corps","Entraigues","La Motte-d'Aveillans","La Motte-Saint-Martin","La Mure",
+      "La Salle-en-Beaumont","Laffrey","Monteynard","Nantes-en-Rattier","Notre-Dame-de-Vaulx",
+      "Pierre-Châtel","Prunières","Saint-Honoré","Saint-Jean-de-Vaulx",
+      "Saint-Laurent-en-Beaumont","Susville","Valbonnais","Villard-Saint-Christophe"
+    ]
+  },
+  {
+    "id": "voiron-chartreuse",
+    "nom": "Voiron Chartreuse",
+    "couleur": "#edc948",
+    "communes": [
+      "Apprieu","Beaucroissant","Bilieu","Burcin","Charavines","Charnècles","Chirens",
+      "Colombe","Coublevie","Izeaux","La Buisse","La Murette","Le Grand-Lemps","Massieu",
+      "Moirans","Montferrat","Oyeu","Villages du lac de Paladru",
+      "La Sure-en-Chartreuse","Réaumont","Renage","Rives","Saint-Blaise-du-Buis",
+      "Saint-Aupre","Saint-Bueil","Saint-Cassien","Saint-Etienne-de-Crossey",
+      "Saint-Geoire-en-Valdaine","Saint-Jean-d'Avelanne","Saint-Jean-de-Moirans",
+      "Saint-Joseph-de-Rivière","Saint-Laurent-du-Pont","Saint-Nicolas-de-Macherin",
+      "Saint-Sulpice-des-Rivoires","Velanne","Voiron","Vourey"
+    ]
+  },
+  {
+    "id": "autour-de-st-marcellin",
+    "nom": "Autour de St Marcellin",
+    "couleur": "#b07aa1",
+    "communes": [
+      "Auberives-en-Royans","Beaulieu","Chantesse","Chasselay","Chatte","Chevrières",
+      "Cognin-les-Gorges","Cras","Izeron","L'Albenc","La Rivière","La Sône","Montagne",
+      "Montaud","Morette","Murinais","Notre-Dame-de-l'Osier","Poliénas","Pont-en-Royans",
+      "Rencurel","Rovon","Serre-Nerpol","Saint-André-en-Royans","Saint-Antoine-l'Abbaye",
+      "Saint-Appolinard","Saint-Bonnet-de-Chavagne","Saint-Gervais",
+      "Saint-Hilaire-du-Rosier","Saint-Just-de-Claix","Saint-Lattier","Saint-Marcellin",
+      "Saint-Pierre-de-Chérennes","Saint-Quentin-sur-Isère","Saint-Romans","Saint-Sauveur",
+      "Saint-Vérand","Têche","Tullins","Varacieux","Vatilieu","Vinay"
+    ]
+  },
+  {
+    "id": "centre",
+    "nom": "Centre",
+    "couleur": "#ff9da7",
+    "communes": [
+      "Beaufort","Beaurepaire","Bellegarde-Poussieu","Bevenais","Brézins","Brion",
+      "Cour-et-Buis","Faramans","Gillonnay","Jarcieu","La Côte-Saint-André","La Forteresse",
+      "La Frette","Marcilloles","Marcollin","Moissieu-sur-Dolon","Ornacieux-Balbins","Pact",
+      "Pajay","Penol","Pisieu","Plan","Pommier-de-Beaurepaire","Primarette","Roybon",
+      "Revel-Tourdan","Sardieu","Sillans","Saint-Barthélémy-de-Beaurepaire",
+      "Saint-Clair-sur-Galaure","Saint-Etienne-de-Saint-Geoirs","Saint-Geoirs",
+      "Saint-Hilaire-de-la-Côte","Saint-Michel-de-Saint-Geoirs","Saint-Paul-d'Izeaux",
+      "Saint-Pierre-de-Bressieux","Saint-Siméon-de-Bressieux","Thodure","Viriville"
+    ]
+  },
+  {
+    "id": "bievre",
+    "nom": "Bièvre",
+    "couleur": "#9c755f",
+    "communes": [
+      "Eclose-Badinières","Belmont","Biol","Bizonnes","Cessieu","Châbons","Champier",
+      "Châteauvilain","Chatonnay","Chélieu","Crachier","Culin-Tramolé","Doissin","Eydoche",
+      "Flachères","Le Mottier","Les Eparres","Lieudieu","Longechenal","Maubec",
+      "Meyrieu-les-Etangs","Montagnieu","Montrevel","Nivolas-Vermelle","Porte-des-Bonnevaux",
+      "Ruy","Sérézin-de-la-Tour","Saint-Agnin-sur-Bion","Saint-Didier-de-Bizonnes",
+      "Saint-Victor-de-Cessieu","Sainte-Anne-sur-Gervonde","Sainte-Blandine","Succieu",
+      "Torchefelon","Val-de-Virieu"
+    ]
+  },
+  {
+    "id": "vals-du-dauphine",
+    "nom": "Vals du Dauphiné",
+    "couleur": "#bab0ac",
+    "communes": [
+      "Aoste","Arandon-Passins","Brangues","Charancieu","Chimilin","Corbelin","Creys-Mépieu",
+      "Dolomieu","Faverges-de-la-Tour","La Bâtie-Montgascon","La Chapelle-de-la-Tour",
+      "La-Tour-du-Pin","Le Bouchage","Le Passage","Le Pont-de-Beauvoisin",
+      "Les Abrets-en-Dauphiné","Les Avenières-Veyrins-Thuellin","Morestel","Pressins",
+      "Rochetoirin","Romagnieu","Saint-André-le-Gaz","Saint-Clair-de-la-Tour",
+      "Saint-Didier-de-la-Tour","Saint-Jean-de-Soudain","Saint-Ondras",
+      "Saint-Sorlin-de-Morestel","Saint-Victor-de-Morestel","Valencogne","Vasselin",
+      "Vézeronce-Curtin"
+    ]
+  },
+  {
+    "id": "autour-de-bourgoin",
+    "nom": "Autour de Bourgoin",
+    "couleur": "#d37295",
+    "communes": [
+      "Bonnefamille","Bourgoin-Jallieu","Chèzeneuve","Diémoz","Domarin","Four","Frontonas",
+      "Grenay","Heyrieux","L'Isle d'Abeau","La Verpillière","Meyrié","Montcarra","Roche",
+      "Salagnon","Satolas-et-Bonce","Sermérieu","Soleymieu","Saint-Alban-de-Roche",
+      "Saint-Chef","Saint-Hilaire-de-Brens","Saint-Marcel-Bel-Accueil",
+      "Saint-Quentin-Fallavier","Saint-Savin","Trept","Vaulx-Milieu","Vénérieu","Vignieu",
+      "Villefontaine"
+    ]
+  },
+  {
+    "id": "haut-rhone-dauphinois",
+    "nom": "Haut-Rhône Dauphinois",
+    "couleur": "#8cd17d",
+    "communes": [
+      "Annoisin-Chatelans","Anthon","Bouvesse-Quirieu","Chamagnieu","Charette",
+      "Charvieu-Chavagneux","Chavanoz","Chozeau","Courtenay","Crémieu","Dizimieu",
+      "Hières-sur-Amby","Janneyrias","La Balme-les-Grottes","Leyrieu","Montalieu-Vercieu",
+      "Moras","Optevoz","Panossas","Parmilieu","Pont-de-Chéruy","Porcieu-Amblagnieu",
+      "Siccieu-Saint-Julien-et-Carisieu","Saint-Baudille-de-la-Tour",
+      "Saint-Romain-de-Jalionas","Tignieu-Jameyzieu","Vertrieu","Veyssilieu",
+      "Villemoirieu","Villette-d'Anthon"
+    ]
+  },
+  {
+    "id": "isere-rhodanienne-sud",
+    "nom": "Isère Rhodanienne Sud",
+    "couleur": "#86bcb6",
+    "communes": [
+      "Agnin","Anjou","Assieu","Auberives-sur-Varèze","Bougé-Chambalud","Chanas",
+      "Cheyssieu","Chonas-l'Amballan","Clonas-sur-Varèze","Jardin","La Chapelle-de-Surieu",
+      "Le Péage-de-Roussillon","Les Côtes-d'Arey","Les Roches-de-Condrieu",
+      "Montséveroux","Monsteroux-Milieu","Reventin-Vaugris","Roussillon","Sablons",
+      "Salaise-sur-Sanne","Sonnay","Saint-Alban-du-Rhône","Saint-Clair-du-Rhône",
+      "Saint-Maurice-l'Exil","Saint-Prim","Saint-Romain-de-Surieu","Saint-Sorlin-de-Vienne",
+      "Vernioz","Vienne","Ville-sous-Anjou"
+    ]
+  },
+  {
+    "id": "isere-rhodanienne-nord",
+    "nom": "Isère Rhodanienne Nord",
+    "couleur": "#f1ce63",
+    "communes": [
+      "Artas","Beauvoir-de-Marc","Charantonnay","Chasse-sur-Rhône","Chuzelles","Estrablin",
+      "Eyzin-Pinet","Luzinay","Meyssiez","Moidieu-Détourbe","Oytier-Saint-Oblas",
+      "Pont-Evêque","Savas-Mépin","Septème","Seyssuel","Serpaize",
+      "Saint-Georges-d'Espéranche","Saint-Jean-de-Bournay","Saint-Just-Chaleyssin",
+      "Valencin","Villeneuve-de-Marc","Villette-de-Vienne"
+    ]
+  }
+]
