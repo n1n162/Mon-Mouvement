@@ -276,7 +276,7 @@ function initMapWithSchools(validSchools) {
     );
   }
 
-  initZones().then(() => {
+  initZones(true).then(() => {
   displaySchoolMarkers(validSchools, false);
 });
 }
@@ -286,18 +286,26 @@ let zonesLayer = null;
 let zonesVisible = false;
 const communeColorCache = {};
 
-async function initZones() {
+async function initZones(autoShow = false) {
   try {
     const res = await fetch('zones_38.geojson', { method: 'HEAD' });
     if (res.ok) {
       createZonesToggleButton();
       await buildCommuneColorCache();
+      if (autoShow) {
+        await drawZones();
+        zonesVisible = true;
+        const btn = document.getElementById('zonesToggleBtn');
+        if (btn) {
+          btn.innerHTML = '🙈 Masquer les zones';
+          btn.style.background = '#e53e3e';
+        }
+      }
     }
   } catch (e) {
     console.warn('zones_38.geojson non disponible');
   }
 }
-
 async function buildCommuneColorCache() {
   try {
     const res = await fetch('zones_38.json');
