@@ -276,8 +276,9 @@ function initMapWithSchools(validSchools) {
     );
   }
 
+  initZones().then(() => {
   displaySchoolMarkers(validSchools, false);
-  initZones();
+});
 }
 
 // ===== ZONES DE VOEUX =====
