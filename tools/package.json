@@ -1,0 +1,8 @@
+{
+  "name": "mon-mouvement-tools",
+  "type": "module",
+  "dependencies": {
+    "@turf/turf": "^6.5.0",
+    "node-fetch": "^2.6.9"
+  }
+}
