@@ -11,6 +11,11 @@ let currentSortAsc = true;
 let autocompleteDebounce = null;
 let selectedSuggestionIndex = -1;
 
+// ===== ZONES GLOBALS =====
+let zonesLayer = null;
+let zonesVisible = false;
+const communeColorCache = {};
+
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
   loadDepartments();
@@ -149,9 +154,7 @@ async function geocodeAddress(address) {
   const statusEl = document.getElementById("positionStatus");
   if (statusEl) statusEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Recherche...`;
   try {
-    const res = await fetch(
-      `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(address)}&limit=1`
-    );
+    const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(address)}&limit=1`);
     const data = await res.json();
     if (data.features?.length > 0) {
       const f = data.features[0];
@@ -160,12 +163,10 @@ async function geocodeAddress(address) {
       document.getElementById("adresse").value = label;
       setUserPosition(lat, lng, label);
     } else {
-      if (statusEl) statusEl.innerHTML =
-        `<i class="fas fa-times-circle" style="color:#e53e3e"></i> Adresse introuvable.`;
+      if (statusEl) statusEl.innerHTML = `<i class="fas fa-times-circle" style="color:#e53e3e"></i> Adresse introuvable.`;
     }
   } catch {
-    if (statusEl) statusEl.innerHTML =
-      `<i class="fas fa-times-circle" style="color:#e53e3e"></i> Erreur de recherche.`;
+    if (statusEl) statusEl.innerHTML = `<i class="fas fa-times-circle" style="color:#e53e3e"></i> Erreur de recherche.`;
   }
 }
 
@@ -185,20 +186,14 @@ function setupAddressAutocomplete() {
     const query = input.value.trim();
     clearTimeout(autocompleteDebounce);
     if (query.length < 3) { closeSuggestions(); return; }
-
     autocompleteDebounce = setTimeout(async () => {
       try {
-        const res = await fetch(
-          `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=6&autocomplete=1`
-        );
+        const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=6&autocomplete=1`);
         const data = await res.json();
         if (!data.features?.length) { closeSuggestions(); return; }
-
         list.innerHTML = data.features.map(f => {
           const p = f.properties;
-          const icon = p.type === 'housenumber' ? 'fa-home'
-            : p.type === 'street' ? 'fa-road'
-            : p.type === 'municipality' ? 'fa-city' : 'fa-map-marker-alt';
+          const icon = p.type === 'housenumber' ? 'fa-home' : p.type === 'street' ? 'fa-road' : p.type === 'municipality' ? 'fa-city' : 'fa-map-marker-alt';
           const [lng, lat] = f.geometry.coordinates;
           return `<li data-lat="${lat}" data-lng="${lng}" data-label="${p.label.replace(/"/g, '&quot;')}">
             <i class="fas ${icon}"></i> <span>${p.label}</span>
@@ -207,7 +202,6 @@ function setupAddressAutocomplete() {
         }).join('');
         list.style.display = "block";
         selectedSuggestionIndex = -1;
-
         list.querySelectorAll("li").forEach(li => {
           li.addEventListener("click", () => {
             input.value = li.querySelector('span').textContent;
@@ -247,21 +241,22 @@ function setupAddressAutocomplete() {
 }
 
 // ===== MAP =====
+function resetZones() {
+  // Nettoyer zones AVANT map.remove()
+  if (zonesLayer && map) { map.removeLayer(zonesLayer); }
+  zonesLayer = null;
+  zonesVisible = false;
+  if (map && map._zonesLegend) { map.removeControl(map._zonesLegend); map._zonesLegend = null; }
+  // Vider le cache couleurs
+  Object.keys(communeColorCache).forEach(k => delete communeColorCache[k]);
+  // Supprimer le bouton
+  const oldBtn = document.getElementById('zonesWrapper');
+  if (oldBtn) oldBtn.remove();
+}
+
 function initMapWithSchools(validSchools) {
+  resetZones();
   if (map) map.remove();
-
-  // Nettoyer les zones
-if (zonesLayer && map) { map.removeLayer(zonesLayer); }
-zonesLayer = null;
-zonesVisible = false;
-if (map && map._zonesLegend) { map.removeControl(map._zonesLegend); map._zonesLegend = null; }
-
-// Vider le cache des couleurs
-Object.keys(communeColorCache).forEach(k => delete communeColorCache[k]);
-
-// Supprimer le bouton
-const oldBtn = document.getElementById('zonesWrapper');
-if (oldBtn) oldBtn.remove();
 
   const center = validSchools.length > 0
     ? [
@@ -283,18 +278,14 @@ if (oldBtn) oldBtn.remove();
   }
 
   initZones(true).then(() => {
-  displaySchoolMarkers(validSchools, false);
-});
+    displaySchoolMarkers(validSchools, false);
+  });
 }
 
-// ===== ZONES DE VOEUX =====
-let zonesLayer = null;
-let zonesVisible = false;
-const communeColorCache = {};
-
+// ===== ZONES =====
 async function initZones(autoShow = false) {
   try {
-    const res = await fetch('zones_38.geojson', { method: 'HEAD' });
+    const res = await fetch(`zones_${selectedDepartment}.geojson`, { method: 'HEAD' });
     if (res.ok) {
       createZonesToggleButton();
       await buildCommuneColorCache();
@@ -302,19 +293,18 @@ async function initZones(autoShow = false) {
         await drawZones();
         zonesVisible = true;
         const btn = document.getElementById('zonesToggleBtn');
-        if (btn) {
-          btn.innerHTML = '🙈 Masquer les zones';
-          btn.style.background = '#e53e3e';
-        }
+        if (btn) { btn.innerHTML = '🙈 Masquer les zones'; btn.style.background = '#e53e3e'; }
       }
     }
   } catch (e) {
-    console.warn('zones_38.geojson non disponible');
+    console.warn(`zones_${selectedDepartment}.geojson non disponible`);
   }
 }
+
 async function buildCommuneColorCache() {
   try {
-    const res = await fetch('zones_38.json');
+    const res = await fetch(`zones_${selectedDepartment}.json`);
+    if (!res.ok) return;
     const zones = await res.json();
     zones.forEach(zone => {
       zone.communes.forEach(commune => {
@@ -344,29 +334,20 @@ function getMarkerIcon(color) {
     <circle cx="12.5" cy="12.5" r="5" fill="white" opacity="0.8"/>
   </svg>`;
   const url = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
-  return L.icon({
-    iconUrl: url,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34]
-  });
+  return L.icon({ iconUrl: url, iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34] });
 }
+
 function createZonesToggleButton() {
   if (document.getElementById('zonesToggleBtn')) return;
   const mapSection = document.getElementById('mapSection');
   if (!mapSection) return;
-
   const wrapper = document.createElement('div');
   wrapper.id = 'zonesWrapper';
   wrapper.style.cssText = 'margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;';
-
   const btn = document.createElement('button');
   btn.id = 'zonesToggleBtn';
   btn.innerHTML = '🗺️ Afficher les zones de vœux';
-  btn.style.cssText = `
-    background:#667eea;color:white;border:none;padding:8px 16px;
-    border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;
-  `;
+  btn.style.cssText = 'background:#667eea;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;';
   btn.addEventListener('click', toggleZones);
   wrapper.appendChild(btn);
   mapSection.appendChild(wrapper);
@@ -375,7 +356,6 @@ function createZonesToggleButton() {
 async function toggleZones() {
   const btn = document.getElementById('zonesToggleBtn');
   if (!map) return;
-
   if (zonesVisible) {
     if (zonesLayer) { map.removeLayer(zonesLayer); zonesLayer = null; }
     if (map._zonesLegend) { map.removeControl(map._zonesLegend); map._zonesLegend = null; }
@@ -394,27 +374,20 @@ async function toggleZones() {
 }
 
 async function drawZones() {
-  const res = await fetch('zones_38.geojson');
+  const res = await fetch(`zones_${selectedDepartment}.geojson`);
   const geojson = await res.json();
-
   zonesLayer = L.geoJSON(geojson, {
     style: feature => ({
       color: feature.properties.couleur,
-      weight: 2,
-      opacity: 0.9,
+      weight: 2, opacity: 0.9,
       fillColor: feature.properties.couleur,
       fillOpacity: 0.25
     }),
     onEachFeature: (feature, layer) => {
       layer.bindPopup(`
         <div style="font-family:'Poppins',sans-serif;min-width:160px;">
-          <div style="background:${feature.properties.couleur};color:white;padding:8px 12px;
-            border-radius:6px;margin:-10px -14px 10px -14px;text-align:center;font-weight:600;">
-            ${feature.properties.nom}
-          </div>
-          <div style="font-size:12px;color:#555;">
-            📍 ${feature.properties.nb_communes} communes
-          </div>
+          <div style="background:${feature.properties.couleur};color:white;padding:8px 12px;border-radius:6px;margin:-10px -14px 10px -14px;text-align:center;font-weight:600;">${feature.properties.nom}</div>
+          <div style="font-size:12px;color:#555;">📍 ${feature.properties.nb_communes} communes</div>
         </div>
       `);
       layer.on('mouseover', function () { this.setStyle({ fillOpacity: 0.5, weight: 3 }); });
@@ -425,14 +398,11 @@ async function drawZones() {
   const legend = L.control({ position: 'bottomright' });
   legend.onAdd = () => {
     const div = L.DomUtil.create('div');
-    div.style.cssText = `background:white;padding:10px 14px;border-radius:10px;
-      box-shadow:0 2px 12px rgba(0,0,0,0.15);font-family:'Poppins',sans-serif;
-      font-size:11px;max-height:280px;overflow-y:auto;line-height:1.8;`;
+    div.style.cssText = 'background:white;padding:10px 14px;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.15);font-family:Poppins,sans-serif;font-size:11px;max-height:280px;overflow-y:auto;line-height:1.8;';
     div.innerHTML = '<strong style="font-size:12px;">Zones de vœux</strong><br>' +
       geojson.features.map(f => `
         <div style="display:flex;align-items:center;gap:6px;">
-          <span style="display:inline-block;width:14px;height:14px;border-radius:3px;
-            background:${f.properties.couleur};opacity:0.8;flex-shrink:0;"></span>
+          <span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${f.properties.couleur};opacity:0.8;flex-shrink:0;"></span>
           <span>${f.properties.nom}</span>
         </div>`).join('');
     return div;
@@ -444,9 +414,7 @@ async function drawZones() {
 // ===== SCHOOL MARKERS =====
 function displaySchoolMarkers(schoolsToShow, filtered) {
   map.eachLayer(layer => {
-    if (layer instanceof L.Marker && (!userMarker || layer !== userMarker)) {
-      map.removeLayer(layer);
-    }
+    if (layer instanceof L.Marker && (!userMarker || layer !== userMarker)) map.removeLayer(layer);
   });
 
   schoolsToShow.forEach((school) => {
@@ -474,16 +442,9 @@ function displaySchoolMarkers(schoolsToShow, filtered) {
         <div style="text-align:center;">
           <button onclick="showRouteToSchool(${routeIndex});return false;" style="background:#ef4444;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;width:100%;font-size:12px;">🛣️ Itinéraire</button>
         </div>` : ''}
-      </div>
-    `;
+      </div>`;
 
-    marker.bindPopup(popupContent, {
-      maxWidth: 210,
-      className: 'school-popup mini-map-popup',
-      closeButton: true,
-      autoClose: true
-    });
-
+    marker.bindPopup(popupContent, { maxWidth: 210, className: 'school-popup mini-map-popup', closeButton: true, autoClose: true });
     marker.on('click', function () { this.openPopup(); });
   });
 
@@ -505,11 +466,7 @@ async function getMatrixData(source, destinations, eviterPeage) {
   const res = await fetch('/api/matrix/ors', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      coordinates: [source, ...destinations],
-      profile: 'driving-car',
-      avoid_highways: eviterPeage
-    })
+    body: JSON.stringify({ coordinates: [source, ...destinations], profile: 'driving-car', avoid_highways: eviterPeage })
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
@@ -519,11 +476,7 @@ async function getRouteGeometry(source, destination, eviterPeage) {
   const res = await fetch('/api/route/ors', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      source, destination,
-      profile: 'driving-car',
-      avoid_highways: eviterPeage
-    })
+    body: JSON.stringify({ source, destination, profile: 'driving-car', avoid_highways: eviterPeage })
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
@@ -570,9 +523,7 @@ async function showRouteToSchool(schoolIndex) {
     if (coords) {
       clearAllRoutes();
       const polyline = L.polyline(coords, { color: '#e53e3e', weight: 4, opacity: 0.8 }).addTo(map);
-      polyline.bindPopup(
-        `<strong>🛣️ ${school.nom_etablissement}</strong><br>${school.distanceKm} km &bull; ${school.durationMin} min`
-      );
+      polyline.bindPopup(`<strong>🛣️ ${school.nom_etablissement}</strong><br>${school.distanceKm} km &bull; ${school.durationMin} min`);
       routePolylines.push(polyline);
       const bounds = L.latLngBounds(coords);
       bounds.extend([userPosition.lat, userPosition.lng]);
@@ -592,7 +543,6 @@ function clearAllRoutes() {
 // ===== FORM SUBMISSION =====
 document.getElementById("filterForm").addEventListener("submit", async e => {
   e.preventDefault();
-
   if (!selectedDepartment) { alert("Veuillez sélectionner un département."); return; }
   if (!userPosition) {
     document.getElementById("positionBanner").style.display = "block";
@@ -614,21 +564,16 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
   }
 
   document.getElementById("resultsSection").style.display = "block";
-
   let step = schools.filter(s => s.latitude && s.longitude);
   if (type) step = step.filter(s => s.type === type);
   if (statut) step = step.filter(s => s.statut_public_prive === statut);
   if (educationPrioritaire === "hors") {
-    step = step.filter(s =>
-      s.appartenance_education_prioritaire !== "REP" &&
-      s.appartenance_education_prioritaire !== "REP+"
-    );
+    step = step.filter(s => s.appartenance_education_prioritaire !== "REP" && s.appartenance_education_prioritaire !== "REP+");
   } else if (educationPrioritaire) {
     step = step.filter(s => s.appartenance_education_prioritaire === educationPrioritaire);
   }
 
   const haversineRadius = criterion === 'distance' ? criterionValue * 1.3 : criterionValue * 2.5;
-
   step.sort((a, b) => {
     const da = haversine(userPosition.lat, userPosition.lng, parseFloat(a.latitude), parseFloat(a.longitude));
     const db = haversine(userPosition.lat, userPosition.lng, parseFloat(b.latitude), parseFloat(b.longitude));
@@ -637,8 +582,7 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
   const preFiltered = step.slice(0, 300);
 
   if (!preFiltered.length) {
-    document.getElementById("results").innerHTML =
-      `<p><i class='fas fa-exclamation-triangle'></i> Aucune école dans un rayon de ${haversineRadius.toFixed(0)} km à vol d'oiseau avec ces filtres.</p>`;
+    document.getElementById("results").innerHTML = `<p><i class='fas fa-exclamation-triangle'></i> Aucune école dans un rayon de ${haversineRadius.toFixed(0)} km à vol d'oiseau.</p>`;
     displaySchoolMarkers([], true);
     return;
   }
@@ -647,7 +591,6 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
     const source = [userPosition.lng, userPosition.lat];
     const destinations = preFiltered.map(s => [parseFloat(s.longitude), parseFloat(s.latitude)]);
     const matrix = await getMatrixData(source, destinations, eviterPeage);
-
     const detailed = preFiltered.map((school, i) => ({
       ...school,
       durationMin: Math.floor(matrix.durations[0][i] / 60),
@@ -655,31 +598,22 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
     }));
 
     const filtered = detailed.filter(school =>
-      criterion === 'distance'
-        ? parseFloat(school.distanceKm) <= criterionValue
-        : school.durationMin <= criterionValue
+      criterion === 'distance' ? parseFloat(school.distanceKm) <= criterionValue : school.durationMin <= criterionValue
     );
 
-    const critLabel = criterion === 'distance'
-      ? `≤ ${criterionValue} km`
-      : `≤ ${criterionValue} min de trajet`;
-
+    const critLabel = criterion === 'distance' ? `≤ ${criterionValue} km` : `≤ ${criterionValue} min de trajet`;
     const summaryHTML = `<div class="results-summary" style="background:#ebf8ff;border:1px solid #90cdf4;border-radius:8px;padding:8px 14px;margin-bottom:10px;font-size:13px;color:#2c5282;">
       <i class="fas fa-info-circle"></i>
       <strong>${filtered.length} école(s) trouvée(s)</strong> avec un trajet ${critLabel}
-      &mdash; ${preFiltered.length} école(s) évaluée(s) par ORS dans un rayon de ${haversineRadius.toFixed(0)} km à vol d&#39;oiseau
+      &mdash; ${preFiltered.length} école(s) évaluée(s) dans un rayon de ${haversineRadius.toFixed(0)} km
     </div>`;
     document.getElementById("results").innerHTML = summaryHTML;
 
     currentSortKey = (criterion === 'distance') ? 'distance' : 'time';
     currentSortAsc = true;
-
     let sorted = [...filtered];
-    if (currentSortKey === 'distance') {
-      sorted.sort((a, b) => parseFloat(a.distanceKm) - parseFloat(b.distanceKm));
-    } else {
-      sorted.sort((a, b) => a.durationMin - b.durationMin);
-    }
+    if (currentSortKey === 'distance') sorted.sort((a, b) => parseFloat(a.distanceKm) - parseFloat(b.distanceKm));
+    else sorted.sort((a, b) => a.durationMin - b.durationMin);
 
     schoolsWithRoutes = sorted;
     clearAllRoutes();
@@ -687,9 +621,7 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
     displaySchoolMarkers(filtered, true);
 
     if (filtered.length > 0) {
-      const allPoints = filtered
-        .filter(s => s.latitude && s.longitude)
-        .map(s => [parseFloat(s.latitude), parseFloat(s.longitude)]);
+      const allPoints = filtered.filter(s => s.latitude && s.longitude).map(s => [parseFloat(s.latitude), parseFloat(s.longitude)]);
       allPoints.push([userPosition.lat, userPosition.lng]);
       map.fitBounds(L.latLngBounds(allPoints), { padding: [20, 20] });
     }
@@ -715,11 +647,7 @@ document.getElementById("resetBtn").addEventListener("click", () => {
 function showSchoolDetails(school, index) {
   const modal = document.createElement('div');
   modal.id = 'schoolModal';
-  modal.style.cssText = `
-    position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);
-    z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;
-  `;
-
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;';
   modal.innerHTML = `
     <div style="background:white;border-radius:16px;max-width:500px;max-height:90vh;width:90%;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
       <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:20px;border-radius:16px 16px 0 0;position:relative;">
@@ -758,9 +686,7 @@ function showSchoolDetails(school, index) {
           </div>
         </div>` : ''}
       </div>
-    </div>
-  `;
-
+    </div>`;
   document.body.appendChild(modal);
   modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
 }
@@ -769,7 +695,6 @@ function showSchoolDetails(school, index) {
 function displayResults(results, sortKey = currentSortKey, sortAsc = currentSortAsc) {
   currentSortKey = sortKey;
   currentSortAsc = sortAsc;
-
   const div = document.getElementById("results");
   const existingSummary = div.querySelector('.results-summary');
   const summaryHTML = existingSummary ? existingSummary.outerHTML : '';
@@ -780,19 +705,11 @@ function displayResults(results, sortKey = currentSortKey, sortAsc = currentSort
   }
 
   let sorted = [...results];
-  if (sortKey === 'distance') {
-    sorted.sort((a, b) => sortAsc
-      ? parseFloat(a.distanceKm) - parseFloat(b.distanceKm)
-      : parseFloat(b.distanceKm) - parseFloat(a.distanceKm));
-  } else if (sortKey === 'time') {
-    sorted.sort((a, b) => sortAsc
-      ? a.durationMin - b.durationMin
-      : b.durationMin - a.durationMin);
-  }
+  if (sortKey === 'distance') sorted.sort((a, b) => sortAsc ? parseFloat(a.distanceKm) - parseFloat(b.distanceKm) : parseFloat(b.distanceKm) - parseFloat(a.distanceKm));
+  else if (sortKey === 'time') sorted.sort((a, b) => sortAsc ? a.durationMin - b.durationMin : b.durationMin - a.durationMin);
   schoolsWithRoutes = sorted;
 
   const arrow = key => currentSortKey === key ? (sortAsc ? ' ▲' : ' ▼') : '';
-
   div.innerHTML = summaryHTML + `
     <div class="results-table-wrapper">
       <table class="results-table">
@@ -825,8 +742,7 @@ function displayResults(results, sortKey = currentSortKey, sortAsc = currentSort
           `).join('')}
         </tbody>
       </table>
-    </div>
-  `;
+    </div>`;
 }
 
 function sortResults(key) {
