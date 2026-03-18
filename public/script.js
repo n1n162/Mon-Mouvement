@@ -280,41 +280,99 @@ function initMapWithSchools(validSchools) {
     
 }
 
+// ===== COULEUR DES MARQUEURS PAR ZONE =====
+
+// Cache des couleurs par commune (rempli au chargement du GeoJSON)
+const communeColorCache = {};
+
+// À appeler après le chargement de zones_38.geojson
+// On indexe chaque commune → couleur de sa zone
+async function buildCommuneColorCache() {
+  try {
+    const res = await fetch('zones_38.geojson');
+    const geojson = await res.json();
+    // On recharge aussi zones_38.json pour avoir la liste communes → zone
+    const resZ = await fetch('zones_38.json');
+    const zones = await resZ.json();
+    zones.forEach(zone => {
+      zone.communes.forEach(commune => {
+        communeColorCache[normalizeCommune(commune)] = zone.couleur;
+      });
+    });
+    console.log(`🎨 Cache couleurs : ${Object.keys(communeColorCache).length} communes indexées`);
+  } catch(e) {
+    console.warn('Cache couleurs zones non disponible', e);
+  }
+}
+
+function normalizeCommune(str) {
+  return str.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[-'\s]+/g, ' ')
+    .trim();
+}
+
+function getColorForSchool(school) {
+  const commune = school.nom_commune || '';
+  const color = communeColorCache[normalizeCommune(commune)];
+  return color || '#3388ff'; // bleu Leaflet par défaut si hors zone
+}
+
+// Génère une icône Leaflet de la couleur donnée (via leaflet-color-markers)
+function getMarkerIcon(color) {
+  // Palette de couleurs disponibles dans leaflet-color-markers
+  const colorMap = {
+    '#4e79a7': 'blue',
+    '#f28e2b': 'orange',
+    '#e15759': 'red',
+    '#76b7b2': 'cadetblue',
+    '#59a14f': 'green',
+    '#edc948': 'gold',
+    '#b07aa1': 'violet',
+    '#ff9da7': 'pink',
+    '#9c755f': 'beige',
+    '#bab0ac': 'grey',
+    '#d37295': 'pink',
+    '#8cd17d': 'lightgreen',
+    '#86bcb6': 'cadetblue',
+    '#f1ce63': 'gold',
+    '#3388ff': 'blue'
+  };
+
+  const colorName = colorMap[color] || 'blue';
+  return L.icon({
+    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${colorName}.png`,
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+  });
+}
+
+// ===== REMPLACE L'ANCIENNE displaySchoolMarkers =====
 function displaySchoolMarkers(schoolsToShow, filtered) {
-  map.eachLayer(layer => { 
+  map.eachLayer(layer => {
     if (layer instanceof L.Marker && (!userMarker || layer !== userMarker)) {
-      map.removeLayer(layer); 
+      map.removeLayer(layer);
     }
   });
-
-  const iconUrl = filtered
-    ? 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png'
-    : 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
 
   schoolsToShow.forEach((school) => {
     const lat = parseFloat(school.latitude);
     const lng = parseFloat(school.longitude);
     if (isNaN(lat) || isNaN(lng)) return;
 
-    const marker = L.marker([lat, lng], {
-      icon: L.icon({
-        iconUrl,
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-      })
-    }).addTo(map);
+    const color = getColorForSchool(school);
+    const marker = L.marker([lat, lng], { icon: getMarkerIcon(color) }).addTo(map);
 
     let routeIndex = -1;
     if (filtered && schoolsWithRoutes.length > 0) {
-      routeIndex = schoolsWithRoutes.findIndex(s => 
+      routeIndex = schoolsWithRoutes.findIndex(s =>
         s.identifiant_de_l_etablissement === school.identifiant_de_l_etablissement
       );
     }
 
-    // POPUP ULTRA-MINI : NOM + ITINÉRAIRE
     const popupContent = `
       <div style="width:200px;font-family:'Poppins',sans-serif;font-size:13px;">
-        <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:10px 14px;border-radius:8px;margin:-10px -14px 12px -14px;text-align:center;">
+        <div style="background:linear-gradient(135deg,${color} 0%,${color}cc 100%);color:white;padding:10px 14px;border-radius:8px;margin:-10px -14px 12px -14px;text-align:center;">
           <strong>${school.nom_etablissement}</strong>
           ${filtered && school.distanceKm ? `<br><small style="opacity:0.9;">${school.distanceKm}km • ${school.durationMin}min</small>` : ''}
         </div>
@@ -332,14 +390,11 @@ function displaySchoolMarkers(schoolsToShow, filtered) {
       autoClose: true
     });
 
-    marker.on('click', function() {
-      this.openPopup();
-    });
+    marker.on('click', function() { this.openPopup(); });
   });
 
   if (userMarker && map) userMarker.addTo(map);
 }
-
 
 
 // ===== HAVERSINE =====
@@ -732,6 +787,8 @@ async function initZones() {
   try {
     const res = await fetch('zones_38.geojson', { method: 'HEAD' });
     if (res.ok) createZonesToggleButton();
+    await buildCommuneColorCache();
+   }
   } catch (e) {
     console.warn('zones_38.geojson non disponible');
   }
