@@ -125,7 +125,7 @@ function getDeptName(code) {
     '91': 'essonne', '92': 'hauts-de-seine', '93': 'seine-saint-denis',
     '94': 'val-de-marne', '95': 'val-d-oise'
   };
-  return names[codeDept.padStart(2,'0')] || codeDept;
+  return names[code.padStart(2,'0')] || code;
 }
 
 // Fallback : API geo.gouv.fr
