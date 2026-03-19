@@ -80,20 +80,39 @@ function matchCommune(nom, schoolIndex) {
 async function loadAllCommunes(codeDept) {
   console.log(`\n🗺️  Téléchargement du GeoJSON complet du département ${codeDept}...`);
 
-  // Source : contours-communes.geojson.gz de etalab (découpage au 1er janvier 2024)
   const url = `https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements/${codeDept.padStart(2,'0')}-${getDeptName(codeDept)}/communes-${codeDept.padStart(2,'0')}-${getDeptName(codeDept)}.geojson`;
 
+  let features = [];
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const geojson = await res.json();
-    console.log(`✅ ${geojson.features.length} communes dans le GeoJSON`);
-    return geojson.features;
+    features = geojson.features;
+    console.log(`✅ ${features.length} communes dans le GeoJSON (gregoiredavid)`);
   } catch (e) {
     console.warn(`⚠️  Source gregoiredavid échouée : ${e.message}`);
-    // Fallback : API geo.gouv.fr standard
-    return await loadFromGeoAPI(codeDept);
   }
+
+  // Compléter avec l'API geo.gouv.fr pour les communes récentes (fusions)
+  // L'API est la référence officielle et à jour
+  console.log(`🔄 Complétion avec l'API geo.gouv.fr (communes récentes)...`);
+  const apiFeatures = await loadFromGeoAPI(codeDept);
+
+  // Index des communes déjà chargées par code
+  const existingCodes = new Set(features.map(f => f.properties.code).filter(Boolean));
+
+  // Ajouter les communes de l'API qui ne sont pas dans gregoiredavid
+  let added = 0;
+  for (const f of apiFeatures) {
+    if (!existingCodes.has(f.properties.code)) {
+      features.push(f);
+      added++;
+    }
+  }
+  if (added > 0) console.log(`  + ${added} communes récentes ajoutées depuis l'API`);
+
+  console.log(`✅ Total : ${features.length} communes`);
+  return features;
 }
 
 // Noms de départements pour l'URL gregoiredavid
