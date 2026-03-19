@@ -93,30 +93,8 @@ async function loadAllCommunes(codeDept) {
     console.warn(`⚠️  Source gregoiredavid échouée : ${e.message}`);
   }
 
-  // Compléter avec les communes récentes connues (fusions post-2019)
-  // Codes INSEE hardcodés car absents du GeoJSON gregoiredavid
-  const communesRecentes = [
-    // Savoie (73)
-    { dept: '73', code: '73151' }, // Porte-de-Savoie
-    { dept: '73', code: '73215' }, // Valgelon-La Rochette
-    { dept: '73', code: '73110' }, // La Tour-en-Maurienne
-    { dept: '73', code: '73247' }, // Saint-Jean-de-la-Porte (-> Porte de Savoie)
-    // Nord (59)
-    { dept: '59', code: '59553' }, // Saint-Waast
-  ];
-  const toLoad = communesRecentes.filter(c => c.dept === codeDept);
-  if (toLoad.length > 0) {
-    console.log(`🔄 Chargement de ${toLoad.length} communes récentes par code INSEE...`);
-    const existingCodes = new Set(features.map(f => f.properties.code).filter(Boolean));
-    let added = 0;
-    for (const c of toLoad) {
-      if (!existingCodes.has(c.code)) {
-        const f = await fetchCommuneByCode(c.code);
-        if (f) { features.push(f); added++; process.stdout.write('.'); }
-      }
-    }
-    if (added > 0) console.log(`\n  + ${added} communes récentes ajoutées`);
-  }
+  // Rien à faire ici — les communes manquantes seront cherchées
+  // automatiquement par nom dans l'API lors du traitement des zones
 
   console.log(`✅ Total : ${features.length} communes`);
   return features;
@@ -238,38 +216,36 @@ async function main() {
           process.stdout.write('x');
         }
       } else {
-        // Tentative de récupération individuelle via API (communes récentes)
-        const searchName = encodeURIComponent(realName);
-        try {
-          const apiUrl = `https://geo.api.gouv.fr/communes?nom=${searchName}&fields=nom,code&format=json&limit=1`;
-          const apiRes = await fetch(apiUrl);
-          if (apiRes.ok) {
+        // Commune non trouvée dans le GeoJSON local
+        // → recherche automatique par nom dans l'API geo.gouv.fr
+        let found = false;
+        const namesToTry = [realName, nom].filter((v, i, a) => a.indexOf(v) === i);
+        for (const tryName of namesToTry) {
+          try {
+            const apiUrl = `https://geo.api.gouv.fr/communes?nom=${encodeURIComponent(tryName)}&codeDepartement=${dept}&fields=nom,code&format=json&limit=3`;
+            const apiRes = await fetch(apiUrl);
+            if (!apiRes.ok) continue;
             const apiData = await apiRes.json();
-            if (apiData.length > 0) {
-              const byCode = await fetchCommuneByCode(apiData[0].code);
-              if (byCode) {
-                const tf = turf.feature(byCode.geometry);
-                communePolygons.push(tf);
-                // Ajouter au geoIndex pour les prochaines recherches
-                geoIndex[normalize(byCode.properties.nom)] = byCode;
-                correctedCommunes.push(realName);
-                process.stdout.write('+');
-              } else {
-                missed.push(nom);
-                correctedCommunes.push(realName);
-                process.stdout.write('?');
-              }
-            } else {
-              missed.push(nom);
-              correctedCommunes.push(realName);
-              process.stdout.write('?');
+            if (!apiData.length) continue;
+            // Prendre la commune dont le nom normalisé correspond le mieux
+            const stripArticle = s => normalize(s).replace(/^(le|la|les|l) /, '');
+            const match = apiData.find(c =>
+              normalize(c.nom) === normalize(tryName) ||
+              stripArticle(normalize(c.nom)) === stripArticle(normalize(tryName))
+            ) || apiData[0];
+            const byCode = await fetchCommuneByCode(match.code);
+            if (byCode) {
+              const tf = turf.feature(byCode.geometry);
+              communePolygons.push(tf);
+              geoIndex[normalize(byCode.properties.nom)] = byCode;
+              correctedCommunes.push(byCode.properties.nom); // nom officiel
+              process.stdout.write('+');
+              found = true;
+              break;
             }
-          } else {
-            missed.push(nom);
-            correctedCommunes.push(realName);
-            process.stdout.write('?');
-          }
-        } catch(e) {
+          } catch(e) { /* continue */ }
+        }
+        if (!found) {
           missed.push(nom);
           correctedCommunes.push(realName);
           process.stdout.write('?');
