@@ -37,6 +37,32 @@ function normalize(str) {
     .trim();
 }
 
+// Normalisation agressive : supprime articles et mots de liaison
+function normalizeAggressive(str) {
+  return normalize(str)
+    .replace(/^(le |la |les |l |saint |sainte |sur |en |de |du |des |d )/, '')
+    .replace(/ (le|la|les|sur|en|de|du|des|d|et|sous)$/, '')
+    .replace(/ (le|la|les|sur|en|de|du|des|d|et|sous) /g, ' ')
+    .trim();
+}
+
+// Recherche la commune la plus proche dans l'index par similarité
+function findBestMatch(nom, geoIndex) {
+  const normNom = normalizeAggressive(nom);
+  let bestFeature = null;
+  let bestScore = 0;
+  for (const [key, feature] of Object.entries(geoIndex)) {
+    const normKey = normalizeAggressive(feature.properties.nom || '');
+    const wordsNom = normNom.split(' ').filter(w => w.length > 2);
+    const wordsKey = normKey.split(' ').filter(w => w.length > 2);
+    if (!wordsNom.length || !wordsKey.length) continue;
+    const common = wordsNom.filter(w => wordsKey.some(k => k.startsWith(w) || w.startsWith(k)));
+    const score = common.length / Math.max(wordsNom.length, wordsKey.length);
+    if (score > bestScore && score >= 0.6) { bestScore = score; bestFeature = feature; }
+  }
+  return bestFeature;
+}
+
 // ===== CHARGE SCHOOLS =====
 async function loadSchoolCommunes(dept) {
   const localFile = fs.existsSync(`schools_${dept}.json`) ? `schools_${dept}.json`
@@ -196,7 +222,9 @@ async function main() {
             const fn = normalize(f.properties.nom || f.properties.NOM_COM || '');
             return stripArticle(fn) === stripArticle(realName)
                 || stripArticle(fn) === stripArticle(nom);
-          });
+          })
+        || findBestMatch(realName, geoIndex)
+        || findBestMatch(nom, geoIndex);
 
       if (feature && feature.geometry && feature.geometry.type) {
         try {
