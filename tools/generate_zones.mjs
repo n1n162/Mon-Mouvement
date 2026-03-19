@@ -104,25 +104,55 @@ function matchCommune(nom, schoolIndex) {
 // ===== CHARGE LE GEOJSON COMPLET DU DÉPARTEMENT =====
 // Utilise le découpage communal de data.gouv.fr (inclut toutes les communes et communes déléguées)
 async function loadAllCommunes(codeDept) {
-  console.log(`\n🗺️  Téléchargement du GeoJSON complet du département ${codeDept}...`);
+  console.log(`\n🗺️  Chargement des communes du département ${codeDept}...`);
 
-  const url = `https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements/${codeDept.padStart(2,'0')}-${getDeptName(codeDept)}/communes-${codeDept.padStart(2,'0')}-${getDeptName(codeDept)}.geojson`;
-
-  let features = [];
+  // Étape 1 : récupérer la liste des codes communes (requête légère, stable)
+  const listUrl = `https://geo.api.gouv.fr/communes?codeDepartement=${codeDept}&fields=nom,code&format=json&limit=700`;
+  let communeList = [];
   try {
-    const res = await fetch(url);
+    const res = await fetch(listUrl);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const geojson = await res.json();
-    features = geojson.features;
-    console.log(`✅ ${features.length} communes dans le GeoJSON (gregoiredavid)`);
-  } catch (e) {
-    console.warn(`⚠️  Source gregoiredavid échouée : ${e.message}`);
+    communeList = await res.json();
+    console.log(`✅ ${communeList.length} communes listées`);
+  } catch(e) {
+    console.error(`❌ Impossible de lister les communes: ${e.message}`);
+    process.exit(1);
   }
 
-  // Rien à faire ici — les communes manquantes seront cherchées
-  // automatiquement par nom dans l'API lors du traitement des zones
+  // Étape 2 : charger les contours depuis gregoiredavid (rapide, en bloc)
+  const geoUrl = `https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements/${codeDept.padStart(2,'0')}-${getDeptName(codeDept)}/communes-${codeDept.padStart(2,'0')}-${getDeptName(codeDept)}.geojson`;
+  const geoByCode = {};
+  try {
+    const res = await fetch(geoUrl);
+    if (res.ok) {
+      const geojson = await res.json();
+      geojson.features.forEach(f => { if (f.properties.code) geoByCode[f.properties.code] = f; });
+      console.log(`✅ ${Object.keys(geoByCode).length} contours chargés (gregoiredavid)`);
+    }
+  } catch(e) {
+    console.warn(`⚠️  gregoiredavid échoué: ${e.message}`);
+  }
 
-  console.log(`✅ Total : ${features.length} communes`);
+  // Étape 3 : pour chaque commune, utiliser gregoiredavid si dispo, sinon API individuelle
+  console.log(`📐 Assemblage des contours...`);
+  const features = [];
+  let fromGeo = 0, fromApi = 0;
+
+  for (const c of communeList) {
+    if (geoByCode[c.code]) {
+      // Mettre à jour le nom avec celui de l'API (plus à jour)
+      geoByCode[c.code].properties.nom = c.nom;
+      features.push(geoByCode[c.code]);
+      fromGeo++;
+    } else {
+      // Commune récente absente de gregoiredavid → charger depuis l'API
+      const f = await fetchCommuneByCode(c.code);
+      if (f) { features.push(f); fromApi++; }
+      await new Promise(r => setTimeout(r, 30));
+    }
+  }
+
+  console.log(`✅ ${features.length} communes (${fromGeo} gregoiredavid + ${fromApi} API)`);
   return features;
 }
 
