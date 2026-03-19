@@ -93,27 +93,29 @@ async function loadAllCommunes(codeDept) {
     console.warn(`⚠️  Source gregoiredavid échouée : ${e.message}`);
   }
 
-  // Compléter avec les communes récentes (fusions) via requêtes individuelles
-  // On récupère toute la liste sans contour (léger) puis on charge les contours manquants
-  console.log(`🔄 Recherche des communes récentes manquantes...`);
-  try {
-    const listUrl = `https://geo.api.gouv.fr/communes?codeDepartement=${codeDept}&fields=nom,code&format=json&limit=700`;
-    const listRes = await fetch(listUrl);
-    if (listRes.ok) {
-      const allCommunes = await listRes.json();
-      const existingCodes = new Set(features.map(f => f.properties.code).filter(Boolean));
-      const missing = allCommunes.filter(c => !existingCodes.has(c.code));
-      console.log(`  ${missing.length} communes récentes à charger individuellement...`);
-      let added = 0;
-      for (const c of missing) {
+  // Compléter avec les communes récentes connues (fusions post-2019)
+  // Codes INSEE hardcodés car absents du GeoJSON gregoiredavid
+  const communesRecentes = [
+    // Savoie (73)
+    { dept: '73', code: '73151' }, // Porte-de-Savoie
+    { dept: '73', code: '73215' }, // Valgelon-La Rochette
+    { dept: '73', code: '73110' }, // La Tour-en-Maurienne
+    { dept: '73', code: '73247' }, // Saint-Jean-de-la-Porte (-> Porte de Savoie)
+    // Nord (59)
+    { dept: '59', code: '59553' }, // Saint-Waast
+  ];
+  const toLoad = communesRecentes.filter(c => c.dept === codeDept);
+  if (toLoad.length > 0) {
+    console.log(`🔄 Chargement de ${toLoad.length} communes récentes par code INSEE...`);
+    const existingCodes = new Set(features.map(f => f.properties.code).filter(Boolean));
+    let added = 0;
+    for (const c of toLoad) {
+      if (!existingCodes.has(c.code)) {
         const f = await fetchCommuneByCode(c.code);
-        if (f) { features.push(f); added++; }
-        await new Promise(r => setTimeout(r, 50));
+        if (f) { features.push(f); added++; process.stdout.write('.'); }
       }
-      if (added > 0) console.log(`  + ${added} communes récentes ajoutées`);
     }
-  } catch(e) {
-    console.warn(`⚠️  Impossible de charger les communes récentes: ${e.message}`);
+    if (added > 0) console.log(`\n  + ${added} communes récentes ajoutées`);
   }
 
   console.log(`✅ Total : ${features.length} communes`);
