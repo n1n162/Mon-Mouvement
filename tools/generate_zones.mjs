@@ -14,7 +14,6 @@ if (!dept) {
 
 const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/n1n162/Mon-Mouvement/refs/heads/V2/public';
 
-// Cherche zones_XX.json dans tools/ ou public/
 const inputFile = fs.existsSync(`zones_${dept}.json`) ? `zones_${dept}.json`
   : fs.existsSync(`../public/zones_${dept}.json`) ? `../public/zones_${dept}.json`
   : null;
@@ -37,7 +36,7 @@ function normalize(str) {
     .trim();
 }
 
-// ===== CHARGE SCHOOLS DEPUIS GITHUB =====
+// ===== CHARGE SCHOOLS =====
 async function loadSchoolCommunes(dept) {
   const localFile = fs.existsSync(`schools_${dept}.json`) ? `schools_${dept}.json`
     : fs.existsSync(`../public/schools_${dept}.json`) ? `../public/schools_${dept}.json`
@@ -76,39 +75,59 @@ function matchCommune(nom, schoolIndex) {
   return schoolIndex[normalize(nom)] || nom;
 }
 
-// ===== CHARGE LES COMMUNES EN 2 ÉTAPES =====
+// ===== CHARGE LES COMMUNES GEO avec retry =====
+async function fetchWithRetry(url, retries = 3, delay = 2000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await fetch(url, { timeout: 30000 });
+      if (res.ok) return res;
+      if (res.status === 500 && i < retries - 1) {
+        console.log(`\n  ⚠️  Erreur 500, retry ${i + 1}/${retries} dans ${delay/1000}s...`);
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      throw new Error(`HTTP ${res.status}`);
+    } catch (e) {
+      if (i < retries - 1) {
+        console.log(`\n  ⚠️  Erreur réseau, retry ${i + 1}/${retries}...`);
+        await new Promise(r => setTimeout(r, delay));
+      } else throw e;
+    }
+  }
+}
+
 async function loadAllCommunes(codeDept) {
   console.log(`\n🗺️  Chargement des communes du département ${codeDept}...`);
 
-  // Étape 1 : liste des codes communes (léger)
+  // Essaie d'abord sans contours pour récupérer les codes
   const listUrl = `https://geo.api.gouv.fr/communes?codeDepartement=${codeDept}&fields=nom,code&format=json`;
-  const listRes = await fetch(listUrl);
-  if (!listRes.ok) throw new Error(`Erreur API liste : ${listRes.status}`);
+  const listRes = await fetchWithRetry(listUrl);
   const communeList = await listRes.json();
   console.log(`✅ ${communeList.length} communes listées`);
 
-  // Étape 2 : contours par batch de 50 codes
-  console.log(`📐 Chargement des contours par batches...`);
+  // Charge les contours commune par commune (plus fiable)
+  console.log(`📐 Chargement des contours un par un...`);
   const allCommunes = [];
-  const batchSize = 50;
 
-  for (let i = 0; i < communeList.length; i += batchSize) {
-    const batch = communeList.slice(i, i + batchSize);
-    const codes = batch.map(c => c.code).join(',');
-    const url = `https://geo.api.gouv.fr/communes?code=${codes}&fields=nom,code,contour&format=json&geometry=contour`;
-
+  for (let i = 0; i < communeList.length; i++) {
+    const c = communeList[i];
+    const url = `https://geo.api.gouv.fr/communes/${c.code}?fields=nom,code,contour&geometry=contour&format=json`;
     try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      allCommunes.push(...data);
-      process.stdout.write(`\r  ${allCommunes.length}/${communeList.length} contours chargés`);
+      const res = await fetch(url, { timeout: 10000 });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.contour) allCommunes.push(data);
+      }
     } catch (e) {
-      console.warn(`\n  ⚠️  Erreur batch ${i}-${i+batchSize}: ${e.message}`);
+      // Silencieux pour les erreurs individuelles
     }
 
-    // Petite pause pour ne pas surcharger l'API
-    await new Promise(r => setTimeout(r, 100));
+    if ((i + 1) % 50 === 0 || i === communeList.length - 1) {
+      process.stdout.write(`\r  ${i + 1}/${communeList.length} communes traitées (${allCommunes.length} contours)`);
+    }
+
+    // Petite pause toutes les 10 communes pour ne pas saturer l'API
+    if (i % 10 === 9) await new Promise(r => setTimeout(r, 50));
   }
 
   console.log(`\n✅ ${allCommunes.length} contours chargés`);
@@ -200,9 +219,8 @@ async function main() {
     console.log(`\n  ✅ ${communePolygons.length}/${zone.communes.length} communes fusionnées`);
   }
 
-  // Réécrire zones_XX.json avec les noms corrigés
   fs.writeFileSync(inputFile, JSON.stringify(correctedZones, null, 2), 'utf8');
-  console.log(`\n📝 ${inputFile} mis à jour avec les noms exacts`);
+  console.log(`\n📝 ${inputFile} mis à jour`);
 
   const geojson = { type: 'FeatureCollection', features };
   const output = JSON.stringify(geojson);
@@ -212,7 +230,7 @@ async function main() {
   console.log(`   ${features.length} zones | ${totalFound} communes trouvées | ${totalMissed} manquantes`);
   console.log(`   📦 Taille : ${(output.length / 1024).toFixed(0)} Ko`);
   if (totalMissed > 0) {
-    console.log(`\n💡 Communes toujours manquantes — corrige dans ${inputFile} et relance`);
+    console.log(`\n💡 Communes manquantes — corrige dans ${inputFile} et relance`);
   }
   console.log(`\n👉 Upload ${outputFile} et ${inputFile} dans public/ sur ta branche V2`);
 }
