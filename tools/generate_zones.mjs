@@ -1,7 +1,6 @@
 // generate_zones.mjs
 // Usage : node generate_zones.mjs 38
 //         node generate_zones.mjs 59
-// Les fichiers schools_XX.json sont téléchargés automatiquement depuis GitHub
 
 import fetch from 'node-fetch';
 import * as turf from '@turf/turf';
@@ -13,17 +12,19 @@ if (!dept) {
   process.exit(1);
 }
 
-// ===== CONFIGURATION =====
-// Remplace par ton URL GitHub Raw
 const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/n1n162/Mon-Mouvement/refs/heads/V2/public';
 
-const inputFile = fs.existsSync(`zones_${dept}.json`) ? `zones_${dept}.json` : `../public/zones_${dept}.json`;
-const outputFile = fs.existsSync(`zones_${dept}.json`) ? `zones_${dept}.geojson` : `../public/zones_${dept}.geojson`;
+// Cherche zones_XX.json dans tools/ ou public/
+const inputFile = fs.existsSync(`zones_${dept}.json`) ? `zones_${dept}.json`
+  : fs.existsSync(`../public/zones_${dept}.json`) ? `../public/zones_${dept}.json`
+  : null;
+const outputFile = inputFile ? inputFile.replace(`zones_${dept}.json`, `zones_${dept}.geojson`) : `../public/zones_${dept}.geojson`;
 
-if (!fs.existsSync(inputFile)) {
-  console.error(`❌ Fichier ${inputFile} introuvable dans le dossier courant.`);
+if (!inputFile) {
+  console.error(`❌ Fichier zones_${dept}.json introuvable (cherché dans ./ et ../public/)`);
   process.exit(1);
 }
+console.log(`📂 Fichier source : ${inputFile}`);
 
 const zones = JSON.parse(fs.readFileSync(inputFile, 'utf8'));
 
@@ -36,11 +37,10 @@ function normalize(str) {
     .trim();
 }
 
-// ===== TÉLÉCHARGE SCHOOLS DEPUIS GITHUB =====
+// ===== CHARGE SCHOOLS DEPUIS GITHUB =====
 async function loadSchoolCommunes(dept) {
-  // Essaie d'abord en local
   const localFile = fs.existsSync(`schools_${dept}.json`) ? `schools_${dept}.json`
-    : fs.existsSync(`public/schools_${dept}.json`) ? `public/schools_${dept}.json`
+    : fs.existsSync(`../public/schools_${dept}.json`) ? `../public/schools_${dept}.json`
     : null;
 
   if (localFile) {
@@ -49,7 +49,6 @@ async function loadSchoolCommunes(dept) {
     return buildSchoolIndex(schools);
   }
 
-  // Sinon télécharge depuis GitHub
   const url = `${GITHUB_RAW_BASE}/schools_${dept}.json`;
   console.log(`📥 Téléchargement depuis GitHub : schools_${dept}.json...`);
   try {
@@ -60,42 +59,66 @@ async function loadSchoolCommunes(dept) {
     return buildSchoolIndex(schools);
   } catch (e) {
     console.warn(`⚠️  Impossible de télécharger schools_${dept}.json : ${e.message}`);
-    console.warn(`   Les noms de communes ne seront pas corrigés automatiquement`);
     return null;
   }
 }
 
 function buildSchoolIndex(schools) {
   const communes = [...new Set(schools.map(s => s.nom_commune).filter(Boolean))];
-  console.log(`🔗 ${communes.length} communes uniques indexées depuis les écoles`);
+  console.log(`🔗 ${communes.length} communes uniques indexées`);
   const index = {};
   communes.forEach(c => { index[normalize(c)] = c; });
   return index;
 }
 
-// Trouve la correspondance dans les noms réels des écoles
 function matchCommune(nom, schoolIndex) {
   if (!schoolIndex) return nom;
-  const key = normalize(nom);
-  return schoolIndex[key] || nom;
+  return schoolIndex[normalize(nom)] || nom;
 }
 
-// ===== CHARGE LES COMMUNES GEO =====
+// ===== CHARGE LES COMMUNES EN 2 ÉTAPES =====
 async function loadAllCommunes(codeDept) {
-  console.log(`\n🗺️  Chargement des contours du département ${codeDept}...`);
-  const url = `https://geo.api.gouv.fr/communes?codeDepartement=${codeDept}&fields=nom,code,contour&format=json&geometry=contour`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Erreur API : ${res.status}`);
-  const data = await res.json();
-  console.log(`✅ ${data.length} communes chargées`);
-  return data;
+  console.log(`\n🗺️  Chargement des communes du département ${codeDept}...`);
+
+  // Étape 1 : liste des codes communes (léger)
+  const listUrl = `https://geo.api.gouv.fr/communes?codeDepartement=${codeDept}&fields=nom,code&format=json`;
+  const listRes = await fetch(listUrl);
+  if (!listRes.ok) throw new Error(`Erreur API liste : ${listRes.status}`);
+  const communeList = await listRes.json();
+  console.log(`✅ ${communeList.length} communes listées`);
+
+  // Étape 2 : contours par batch de 50 codes
+  console.log(`📐 Chargement des contours par batches...`);
+  const allCommunes = [];
+  const batchSize = 50;
+
+  for (let i = 0; i < communeList.length; i += batchSize) {
+    const batch = communeList.slice(i, i + batchSize);
+    const codes = batch.map(c => c.code).join(',');
+    const url = `https://geo.api.gouv.fr/communes?code=${codes}&fields=nom,code,contour&format=json&geometry=contour`;
+
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      allCommunes.push(...data);
+      process.stdout.write(`\r  ${allCommunes.length}/${communeList.length} contours chargés`);
+    } catch (e) {
+      console.warn(`\n  ⚠️  Erreur batch ${i}-${i+batchSize}: ${e.message}`);
+    }
+
+    // Petite pause pour ne pas surcharger l'API
+    await new Promise(r => setTimeout(r, 100));
+  }
+
+  console.log(`\n✅ ${allCommunes.length} contours chargés`);
+  return allCommunes;
 }
 
 async function main() {
   const schoolIndex = await loadSchoolCommunes(dept);
   const allCommunes = await loadAllCommunes(dept);
 
-  // Index geo par nom normalisé
   const geoIndex = {};
   for (const c of allCommunes) {
     geoIndex[normalize(c.nom)] = c;
@@ -177,9 +200,9 @@ async function main() {
     console.log(`\n  ✅ ${communePolygons.length}/${zone.communes.length} communes fusionnées`);
   }
 
-  // Réécrire zones_XX.json avec les noms corrigés (correspondant exactement aux écoles)
+  // Réécrire zones_XX.json avec les noms corrigés
   fs.writeFileSync(inputFile, JSON.stringify(correctedZones, null, 2), 'utf8');
-  console.log(`\n📝 ${inputFile} mis à jour avec les noms exacts des écoles`);
+  console.log(`\n📝 ${inputFile} mis à jour avec les noms exacts`);
 
   const geojson = { type: 'FeatureCollection', features };
   const output = JSON.stringify(geojson);
@@ -190,7 +213,6 @@ async function main() {
   console.log(`   📦 Taille : ${(output.length / 1024).toFixed(0)} Ko`);
   if (totalMissed > 0) {
     console.log(`\n💡 Communes toujours manquantes — corrige dans ${inputFile} et relance`);
-    console.log(`   Référence noms : https://geo.api.gouv.fr/communes?codeDepartement=${dept}`);
   }
   console.log(`\n👉 Upload ${outputFile} et ${inputFile} dans public/ sur ta branche V2`);
 }
