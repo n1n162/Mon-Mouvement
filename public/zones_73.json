@@ -86,7 +86,7 @@
       "Châteauneuf",
       "La Chapelle-Blanche",
       "Coise-Saint-Jean-Pied-Gauthier",
-      "Val Gelon-La Rochette",
+      "Valgelon-La Rochette",
       "Presle",
       "Villard-Léger",
       "Villard-Sallet"
@@ -99,7 +99,7 @@
     "communes": [
       "Albertville",
       "Allondaz",
-      "Beaufort-sur-Doron",
+      "Beaufort",
       "Bonvillard",
       "Césarches",
       "Cevins",
@@ -137,7 +137,7 @@
       "Aillon-le-Jeune",
       "Aillon-le-Vieux",
       "Arith",
-      "Bellecombes-en-Bauges",
+      "Bellecombe-en-Bauges",
       "Le Châtelard",
       "Ecole",
       "Lescheraines"
@@ -163,7 +163,7 @@
       "Rochefort",
       "Saint-Alban-de-Montbel",
       "Saint-Béron",
-      "Saint-Genix-les-Villages",
+      "Saint-Genix-les-Guiers",
       "Saint-Jean-de-Couz",
       "Verel-de-Montbel"
     ]
@@ -178,7 +178,7 @@
       "Lucey",
       "Meyrieux-Trouet",
       "Saint-Jean-de-Chevelu",
-      "Saint-Paul-sur-Yenne",
+      "Saint-Paul-lès-Yenne",
       "Traize",
       "Verthemex",
       "Yenne"
@@ -211,7 +211,7 @@
       "La Chapelle",
       "Les Chavannes-en-Maurienne",
       "Saint-Alban-d'Hurtières",
-      "Saint-Georges-des-Hurtières",
+      "Saint-Georges-d'Hurtières",
       "Saint-Avre",
       "Saint-Etienne-de-Cuines",
       "Saint-Léger",
@@ -242,10 +242,10 @@
     "nom": "Moutiers",
     "couleur": "#8cd17d",
     "communes": [
-      "Grand-Aigueblanche",
+      "Aigueblanche",
       "Les Avanchers-Valmorel",
       "Hautecour",
-      "Moûtiers-Tarentaise",
+      "Moûtiers",
       "La Léchère",
       "Saint-Marcel",
       "Salins-les-Thermes"
