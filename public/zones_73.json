@@ -26,7 +26,8 @@
       "Saint-Thibaud-de-Couz",
       "Sonnaz",
       "Thoiry",
-      "Vimines"
+      "Vimines",
+      "Chambéry"
     ]
   },
   {
@@ -50,7 +51,8 @@
       "Tresserve",
       "Trévignin",
       "Viviers-du-Lac",
-      "Voglans"
+      "Voglans",
+      "Aix-les-Bains"
     ]
   },
   {
@@ -72,7 +74,10 @@
       "Sainte-Hélène-du-Lac",
       "Saint-Jean-de-la-Porte",
       "Saint-Pierre-d'Albigny",
-      "Saint-Pierre-de-Soucy"
+      "Saint-Pierre-de-Soucy",
+      "Valgelon-La Rochette",
+      "Grésy-sur-Isère",
+      "Bellecombe-en-Bauges"
     ]
   },
   {
@@ -86,10 +91,11 @@
       "Châteauneuf",
       "La Chapelle-Blanche",
       "Coise-Saint-Jean-Pied-Gauthier",
-      "Val Gelon-La Rochette",
+      "Valgelon-La Rochette",
       "Presle",
       "Villard-Léger",
-      "Villard-Sallet"
+      "Villard-Sallet",
+      "Valgelon-La Rochette"
     ]
   },
   {
@@ -99,7 +105,7 @@
     "communes": [
       "Albertville",
       "Allondaz",
-      "Beaufort-sur-Doron",
+      "Beaufort",
       "Bonvillard",
       "Césarches",
       "Cevins",
@@ -126,7 +132,16 @@
       "Ugine",
       "Venthon",
       "Verrens-Arvey",
-      "Villard-sur-Doron"
+      "Villard-sur-Doron",
+      "Beaufort",
+      "Crest-Voland",
+      "Flumet",
+      "Hauteluce",
+      "La Giettaz",
+      "Montvalezan",
+      "Notre-Dame-de-Bellecombe",
+      "Saint-Nicolas-la-Chapelle",
+      "Villaroger"
     ]
   },
   {
@@ -137,10 +152,12 @@
       "Aillon-le-Jeune",
       "Aillon-le-Vieux",
       "Arith",
-      "Bellecombes-en-Bauges",
+      "Bellecombe-en-Bauges",
       "Le Châtelard",
-      "Ecole",
-      "Lescheraines"
+      "École",
+      "Lescheraines",
+      "Bellecombe-en-Bauges",
+      "Entremont-le-Vieux"
     ]
   },
   {
@@ -157,15 +174,17 @@
       "Domessin",
       "Dullin",
       "Lépin-le-Lac",
-      "Les Echelles",
+      "Les Échelles",
       "Novalaise",
       "Le Pont-de-Beauvoisin",
       "Rochefort",
       "Saint-Alban-de-Montbel",
       "Saint-Béron",
-      "Saint-Genix-les-Villages",
+      "Saint-Genix-sur-Guiers",
       "Saint-Jean-de-Couz",
-      "Verel-de-Montbel"
+      "Verel-de-Montbel",
+      "Saint-Pierre-d'Entremont",
+      "Saint-Genix-sur-Guiers"
     ]
   },
   {
@@ -178,10 +197,11 @@
       "Lucey",
       "Meyrieux-Trouet",
       "Saint-Jean-de-Chevelu",
-      "Saint-Paul-sur-Yenne",
+      "Saint-Paul-lès-Yenne",
       "Traize",
       "Verthemex",
-      "Yenne"
+      "Yenne",
+      "Saint-Paul-lès-Yenne"
     ]
   },
   {
@@ -206,19 +226,27 @@
     "communes": [
       "Aiton",
       "Argentine",
-      "Epierre",
+      "Épierre",
       "La Chambre",
       "La Chapelle",
       "Les Chavannes-en-Maurienne",
       "Saint-Alban-d'Hurtières",
-      "Saint-Georges-des-Hurtières",
+      "Saint-Georges-d'Hurtières",
       "Saint-Avre",
-      "Saint-Etienne-de-Cuines",
+      "Saint-Étienne-de-Cuines",
       "Saint-Léger",
       "Sainte-Marie-de-Cuines",
       "Saint-Martin-sur-la-Chambre",
       "Saint-Rémy-de-Maurienne",
-      "Val-d'Arc"
+      "Val-d'Arc",
+      "Saint-Georges-d'Hurtières",
+      "Albiez-Montrond",
+      "Fontcouverte-la-Toussuire",
+      "Saint-Colomban-des-Villards",
+      "Saint-Jean-d'Arves",
+      "Saint-Sorlin-d'Arves",
+      "Valloire",
+      "Valmeinier"
     ]
   },
   {
@@ -234,7 +262,8 @@
       "Saint-Martin-de-la-Porte",
       "Saint-Michel-de-Maurienne",
       "Orelle",
-      "Villargondran"
+      "Villargondran",
+      "Saint-François Longchamp"
     ]
   },
   {
@@ -242,13 +271,17 @@
     "nom": "Moutiers",
     "couleur": "#8cd17d",
     "communes": [
-      "Grand-Aigueblanche",
+      "Aigueblanche",
       "Les Avanchers-Valmorel",
       "Hautecour",
-      "Moûtiers-Tarentaise",
+      "Moûtiers",
       "La Léchère",
       "Saint-Marcel",
-      "Salins-les-Thermes"
+      "Salins-Fontaine",
+      "Moûtiers",
+      "Salins-Fontaine",
+      "Les Belleville",
+      "Pralognan-la-Vanoise"
     ]
   },
   {
@@ -258,7 +291,7 @@
     "communes": [
       "Aime-la-Plagne",
       "Landry",
-      "La Plagne Tarentaise",
+      "La Plagne-Tarentaise",
       "Peisey-Nancroix"
     ]
   },
@@ -269,7 +302,7 @@
     "communes": [
       "Bourg-Saint-Maurice",
       "Les Chapelles",
-      "Séez",
+      "Seez",
       "Sainte-Foy-Tarentaise"
     ]
   },
@@ -298,7 +331,11 @@
       "Fourneaux",
       "Modane",
       "Saint-André",
-      "Val-Cenis"
+      "Val Cenis",
+      "Bessans",
+      "Bonneval-sur-Arc",
+      "Tignes",
+      "Val-d'Isère"
     ]
   }
 ]
