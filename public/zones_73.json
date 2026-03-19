@@ -26,8 +26,7 @@
       "Saint-Thibaud-de-Couz",
       "Sonnaz",
       "Thoiry",
-      "Vimines",
-      "Chambéry"
+      "Vimines"
     ]
   },
   {
@@ -51,8 +50,7 @@
       "Tresserve",
       "Trévignin",
       "Viviers-du-Lac",
-      "Voglans",
-      "Aix-les-Bains"
+      "Voglans"
     ]
   },
   {
@@ -74,10 +72,7 @@
       "Sainte-Hélène-du-Lac",
       "Saint-Jean-de-la-Porte",
       "Saint-Pierre-d'Albigny",
-      "Saint-Pierre-de-Soucy",
-      "Valgelon-La Rochette",
-      "Grésy-sur-Isère",
-      "Bellecombe-en-Bauges"
+      "Saint-Pierre-de-Soucy"
     ]
   },
   {
@@ -94,8 +89,7 @@
       "Valgelon-La Rochette",
       "Presle",
       "Villard-Léger",
-      "Villard-Sallet",
-      "Valgelon-La Rochette"
+      "Villard-Sallet"
     ]
   },
   {
@@ -132,16 +126,7 @@
       "Ugine",
       "Venthon",
       "Verrens-Arvey",
-      "Villard-sur-Doron",
-      "Beaufort",
-      "Crest-Voland",
-      "Flumet",
-      "Hauteluce",
-      "La Giettaz",
-      "Montvalezan",
-      "Notre-Dame-de-Bellecombe",
-      "Saint-Nicolas-la-Chapelle",
-      "Villaroger"
+      "Villard-sur-Doron"
     ]
   },
   {
@@ -154,10 +139,8 @@
       "Arith",
       "Bellecombe-en-Bauges",
       "Le Châtelard",
-      "École",
-      "Lescheraines",
-      "Bellecombe-en-Bauges",
-      "Entremont-le-Vieux"
+      "Ecole",
+      "Lescheraines"
     ]
   },
   {
@@ -174,17 +157,15 @@
       "Domessin",
       "Dullin",
       "Lépin-le-Lac",
-      "Les Échelles",
+      "Les Echelles",
       "Novalaise",
       "Le Pont-de-Beauvoisin",
       "Rochefort",
       "Saint-Alban-de-Montbel",
       "Saint-Béron",
-      "Saint-Genix-sur-Guiers",
+      "Saint-Genix-les-Guiers",
       "Saint-Jean-de-Couz",
-      "Verel-de-Montbel",
-      "Saint-Pierre-d'Entremont",
-      "Saint-Genix-sur-Guiers"
+      "Verel-de-Montbel"
     ]
   },
   {
@@ -200,8 +181,7 @@
       "Saint-Paul-lès-Yenne",
       "Traize",
       "Verthemex",
-      "Yenne",
-      "Saint-Paul-lès-Yenne"
+      "Yenne"
     ]
   },
   {
@@ -226,27 +206,19 @@
     "communes": [
       "Aiton",
       "Argentine",
-      "Épierre",
+      "Epierre",
       "La Chambre",
       "La Chapelle",
       "Les Chavannes-en-Maurienne",
       "Saint-Alban-d'Hurtières",
       "Saint-Georges-d'Hurtières",
       "Saint-Avre",
-      "Saint-Étienne-de-Cuines",
+      "Saint-Etienne-de-Cuines",
       "Saint-Léger",
       "Sainte-Marie-de-Cuines",
       "Saint-Martin-sur-la-Chambre",
       "Saint-Rémy-de-Maurienne",
-      "Val-d'Arc",
-      "Saint-Georges-d'Hurtières",
-      "Albiez-Montrond",
-      "Fontcouverte-la-Toussuire",
-      "Saint-Colomban-des-Villards",
-      "Saint-Jean-d'Arves",
-      "Saint-Sorlin-d'Arves",
-      "Valloire",
-      "Valmeinier"
+      "Val-d'Arc"
     ]
   },
   {
@@ -262,8 +234,7 @@
       "Saint-Martin-de-la-Porte",
       "Saint-Michel-de-Maurienne",
       "Orelle",
-      "Villargondran",
-      "Saint-François Longchamp"
+      "Villargondran"
     ]
   },
   {
@@ -277,11 +248,7 @@
       "Moûtiers",
       "La Léchère",
       "Saint-Marcel",
-      "Salins-Fontaine",
-      "Moûtiers",
-      "Salins-Fontaine",
-      "Les Belleville",
-      "Pralognan-la-Vanoise"
+      "Salins-les-Thermes"
     ]
   },
   {
@@ -291,7 +258,7 @@
     "communes": [
       "Aime-la-Plagne",
       "Landry",
-      "La Plagne-Tarentaise",
+      "La Plagne Tarentaise",
       "Peisey-Nancroix"
     ]
   },
@@ -302,7 +269,7 @@
     "communes": [
       "Bourg-Saint-Maurice",
       "Les Chapelles",
-      "Seez",
+      "Séez",
       "Sainte-Foy-Tarentaise"
     ]
   },
@@ -331,11 +298,7 @@
       "Fourneaux",
       "Modane",
       "Saint-André",
-      "Val Cenis",
-      "Bessans",
-      "Bonneval-sur-Arc",
-      "Tignes",
-      "Val-d'Isère"
+      "Val-Cenis"
     ]
   }
 ]
