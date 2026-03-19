@@ -17,14 +17,15 @@ const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/n1n162/Mon-Mouvement/
 const inputFile = fs.existsSync(`zones_${dept}.json`) ? `zones_${dept}.json`
   : fs.existsSync(`../public/zones_${dept}.json`) ? `../public/zones_${dept}.json`
   : null;
-const outputFile = inputFile ? inputFile.replace(`zones_${dept}.json`, `zones_${dept}.geojson`) : `../public/zones_${dept}.geojson`;
+const outputFile = inputFile
+  ? inputFile.replace(`zones_${dept}.json`, `zones_${dept}.geojson`)
+  : `../public/zones_${dept}.geojson`;
 
 if (!inputFile) {
-  console.error(`❌ Fichier zones_${dept}.json introuvable (cherché dans ./ et ../public/)`);
+  console.error(`❌ Fichier zones_${dept}.json introuvable`);
   process.exit(1);
 }
 console.log(`📂 Fichier source : ${inputFile}`);
-
 const zones = JSON.parse(fs.readFileSync(inputFile, 'utf8'));
 
 // ===== NORMALISATION =====
@@ -47,7 +48,6 @@ async function loadSchoolCommunes(dept) {
     const schools = JSON.parse(fs.readFileSync(localFile, 'utf8'));
     return buildSchoolIndex(schools);
   }
-
   const url = `${GITHUB_RAW_BASE}/schools_${dept}.json`;
   console.log(`📥 Téléchargement depuis GitHub : schools_${dept}.json...`);
   try {
@@ -57,7 +57,7 @@ async function loadSchoolCommunes(dept) {
     console.log(`✅ ${schools.length} écoles téléchargées`);
     return buildSchoolIndex(schools);
   } catch (e) {
-    console.warn(`⚠️  Impossible de télécharger schools_${dept}.json : ${e.message}`);
+    console.warn(`⚠️  Impossible : ${e.message}`);
     return null;
   }
 }
@@ -75,75 +75,89 @@ function matchCommune(nom, schoolIndex) {
   return schoolIndex[normalize(nom)] || nom;
 }
 
-// ===== CHARGE LES COMMUNES GEO avec retry =====
-async function fetchWithRetry(url, retries = 3, delay = 2000) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const res = await fetch(url, { timeout: 30000 });
-      if (res.ok) return res;
-      if (res.status === 500 && i < retries - 1) {
-        console.log(`\n  ⚠️  Erreur 500, retry ${i + 1}/${retries} dans ${delay/1000}s...`);
-        await new Promise(r => setTimeout(r, delay));
-        continue;
-      }
-      throw new Error(`HTTP ${res.status}`);
-    } catch (e) {
-      if (i < retries - 1) {
-        console.log(`\n  ⚠️  Erreur réseau, retry ${i + 1}/${retries}...`);
-        await new Promise(r => setTimeout(r, delay));
-      } else throw e;
-    }
+// ===== CHARGE LE GEOJSON COMPLET DU DÉPARTEMENT =====
+// Utilise le découpage communal de data.gouv.fr (inclut toutes les communes et communes déléguées)
+async function loadAllCommunes(codeDept) {
+  console.log(`\n🗺️  Téléchargement du GeoJSON complet du département ${codeDept}...`);
+
+  // Source : contours-communes.geojson.gz de etalab (découpage au 1er janvier 2024)
+  const url = `https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements/${codeDept.padStart(2,'0')}-${getDeptName(codeDept)}/communes-${codeDept.padStart(2,'0')}-${getDeptName(codeDept)}.geojson`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const geojson = await res.json();
+    console.log(`✅ ${geojson.features.length} communes dans le GeoJSON`);
+    return geojson.features;
+  } catch (e) {
+    console.warn(`⚠️  Source gregoiredavid échouée : ${e.message}`);
+    // Fallback : API geo.gouv.fr standard
+    return await loadFromGeoAPI(codeDept);
   }
 }
 
-async function loadAllCommunes(codeDept) {
-  console.log(`\n🗺️  Chargement des communes du département ${codeDept}...`);
+// Noms de départements pour l'URL gregoiredavid
+function getDeptName(code) {
+  const names = {
+    '01': 'ain', '02': 'aisne', '03': 'allier', '04': 'alpes-de-haute-provence',
+    '05': 'hautes-alpes', '06': 'alpes-maritimes', '07': 'ardeche', '08': 'ardennes',
+    '09': 'ariege', '10': 'aube', '11': 'aude', '12': 'aveyron',
+    '13': 'bouches-du-rhone', '14': 'calvados', '15': 'cantal', '16': 'charente',
+    '17': 'charente-maritime', '18': 'cher', '19': 'correze', '21': 'cote-d-or',
+    '22': 'cotes-d-armor', '23': 'creuse', '24': 'dordogne', '25': 'doubs',
+    '26': 'drome', '27': 'eure', '28': 'eure-et-loir', '29': 'finistere',
+    '30': 'gard', '31': 'haute-garonne', '32': 'gers', '33': 'gironde',
+    '34': 'herault', '35': 'ille-et-vilaine', '36': 'indre', '37': 'indre-et-loire',
+    '38': 'isere', '39': 'jura', '40': 'landes', '41': 'loir-et-cher',
+    '42': 'loire', '43': 'haute-loire', '44': 'loire-atlantique', '45': 'loiret',
+    '46': 'lot', '47': 'lot-et-garonne', '48': 'lozere', '49': 'maine-et-loire',
+    '50': 'manche', '51': 'marne', '52': 'haute-marne', '53': 'mayenne',
+    '54': 'meurthe-et-moselle', '55': 'meuse', '56': 'morbihan', '57': 'moselle',
+    '58': 'nievre', '59': 'nord', '60': 'oise', '61': 'orne',
+    '62': 'pas-de-calais', '63': 'puy-de-dome', '64': 'pyrenees-atlantiques',
+    '65': 'hautes-pyrenees', '66': 'pyrenees-orientales', '67': 'bas-rhin',
+    '68': 'haut-rhin', '69': 'rhone', '70': 'haute-saone', '71': 'saone-et-loire',
+    '72': 'sarthe', '73': 'savoie', '74': 'haute-savoie', '75': 'paris',
+    '76': 'seine-maritime', '77': 'seine-et-marne', '78': 'yvelines',
+    '79': 'deux-sevres', '80': 'somme', '81': 'tarn', '82': 'tarn-et-garonne',
+    '83': 'var', '84': 'vaucluse', '85': 'vendee', '86': 'vienne',
+    '87': 'haute-vienne', '88': 'vosges', '89': 'yonne', '90': 'territoire-de-belfort',
+    '91': 'essonne', '92': 'hauts-de-seine', '93': 'seine-saint-denis',
+    '94': 'val-de-marne', '95': 'val-d-oise'
+  };
+  return names[codeDept.padStart(2,'0')] || codeDept;
+}
 
-  // Essaie d'abord sans contours pour récupérer les codes
-  const listUrl = `https://geo.api.gouv.fr/communes?codeDepartement=${codeDept}&fields=nom,code&format=json`;
-  const listRes = await fetchWithRetry(listUrl);
-  const communeList = await listRes.json();
-  console.log(`✅ ${communeList.length} communes listées`);
-
-  // Charge les contours commune par commune (plus fiable)
-  console.log(`📐 Chargement des contours un par un...`);
-  const allCommunes = [];
-
-  for (let i = 0; i < communeList.length; i++) {
-    const c = communeList[i];
-    const url = `https://geo.api.gouv.fr/communes/${c.code}?fields=nom,code,contour&geometry=contour&format=json`;
-    try {
-      const res = await fetch(url, { timeout: 10000 });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.contour) allCommunes.push(data);
-      }
-    } catch (e) {
-      // Silencieux pour les erreurs individuelles
-    }
-
-    if ((i + 1) % 50 === 0 || i === communeList.length - 1) {
-      process.stdout.write(`\r  ${i + 1}/${communeList.length} communes traitées (${allCommunes.length} contours)`);
-    }
-
-    // Petite pause toutes les 10 communes pour ne pas saturer l'API
-    if (i % 10 === 9) await new Promise(r => setTimeout(r, 50));
-  }
-
-  console.log(`\n✅ ${allCommunes.length} contours chargés`);
-  return allCommunes;
+// Fallback : API geo.gouv.fr
+async function loadFromGeoAPI(codeDept) {
+  console.log(`🔄 Fallback : API geo.gouv.fr...`);
+  const url = `https://geo.api.gouv.fr/communes?codeDepartement=${codeDept}&fields=nom,code,contour&format=json&geometry=contour`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  console.log(`✅ ${data.length} communes via API`);
+  // Convertir au format GeoJSON features
+  return data.filter(c => c.contour).map(c => ({
+    type: 'Feature',
+    properties: { nom: c.nom, code: c.code },
+    geometry: c.contour
+  }));
 }
 
 async function main() {
   const schoolIndex = await loadSchoolCommunes(dept);
-  const allCommunes = await loadAllCommunes(dept);
+  const features = await loadAllCommunes(dept);
 
+  // Index par nom normalisé
   const geoIndex = {};
-  for (const c of allCommunes) {
-    geoIndex[normalize(c.nom)] = c;
+  for (const f of features) {
+    const nom = f.properties.nom || f.properties.NOM_COM || f.properties.libelle;
+    if (nom) geoIndex[normalize(nom)] = f;
   }
 
-  const features = [];
+  console.log(`🔍 ${Object.keys(geoIndex).length} communes indexées pour la recherche`);
+
+  const resultFeatures = [];
   let totalFound = 0, totalMissed = 0;
   const correctedZones = [];
 
@@ -155,11 +169,11 @@ async function main() {
 
     for (const nom of zone.communes) {
       const realName = matchCommune(nom, schoolIndex);
-      const commune = geoIndex[normalize(realName)] || geoIndex[normalize(nom)];
+      const feature = geoIndex[normalize(realName)] || geoIndex[normalize(nom)];
 
-      if (commune && commune.contour) {
+      if (feature && feature.geometry) {
         try {
-          communePolygons.push(turf.feature(commune.contour));
+          communePolygons.push(turf.feature(feature.geometry));
           correctedCommunes.push(realName);
           process.stdout.write('.');
         } catch (e) {
@@ -188,46 +202,53 @@ async function main() {
       continue;
     }
 
+    // Filtrer les polygones valides avant la fusion
+    const validPolygons = communePolygons.filter(p => p && p.geometry && p.geometry.type);
+    if (validPolygons.length === 0) {
+      console.log(`  ❌ Aucun polygone valide`);
+      continue;
+    }
+
     let merged;
     try {
-      merged = turf.union(turf.featureCollection(communePolygons));
+      merged = turf.union(turf.featureCollection(validPolygons));
     } catch (e) {
       console.log(`\n  ⚠️  Fusion échouée: ${e.message}`);
       merged = {
         type: 'Feature',
         geometry: {
           type: 'MultiPolygon',
-          coordinates: communePolygons.flatMap(p =>
+          coordinates: validPolygons.flatMap(p =>
             p.geometry.type === 'Polygon' ? [p.geometry.coordinates] : p.geometry.coordinates
           )
         }
       };
     }
 
-    features.push({
+    resultFeatures.push({
       type: 'Feature',
       properties: {
         id: zone.id,
         nom: zone.nom,
         couleur: zone.couleur,
-        nb_communes: communePolygons.length,
+        nb_communes: validPolygons.length,
         nb_manquantes: missed.length
       },
       geometry: merged.geometry
     });
 
-    console.log(`\n  ✅ ${communePolygons.length}/${zone.communes.length} communes fusionnées`);
+    console.log(`\n  ✅ ${validPolygons.length}/${zone.communes.length} communes fusionnées`);
   }
 
   fs.writeFileSync(inputFile, JSON.stringify(correctedZones, null, 2), 'utf8');
   console.log(`\n📝 ${inputFile} mis à jour`);
 
-  const geojson = { type: 'FeatureCollection', features };
+  const geojson = { type: 'FeatureCollection', features: resultFeatures };
   const output = JSON.stringify(geojson);
   fs.writeFileSync(outputFile, output);
 
   console.log(`\n🎉 ${outputFile} généré !`);
-  console.log(`   ${features.length} zones | ${totalFound} communes trouvées | ${totalMissed} manquantes`);
+  console.log(`   ${resultFeatures.length} zones | ${totalFound} communes trouvées | ${totalMissed} manquantes`);
   console.log(`   📦 Taille : ${(output.length / 1024).toFixed(0)} Ko`);
   if (totalMissed > 0) {
     console.log(`\n💡 Communes manquantes — corrige dans ${inputFile} et relance`);
