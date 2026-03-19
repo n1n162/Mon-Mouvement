@@ -4,9 +4,21 @@
     "nom": "Seyssel / Frangy",
     "couleur": "#4e79a7",
     "communes": [
-      "Bassy","Challonges","Chessenaz","Chilly","Clarafond-Arcine","Clermont",
-      "Desingy","Eloise","Franclens","Frangy","Marlioz","Menthonnex-en-Bornes",
-      "Minzier","Seyssel","Usinens"
+      "Bassy",
+      "Challonges",
+      "Chessenaz",
+      "Chilly",
+      "Clarafond-Arcine",
+      "Clermont",
+      "Desingy",
+      "Eloise",
+      "Franclens",
+      "Frangy",
+      "Marlioz",
+      "Menthonnex-en-Bornes",
+      "Minzier",
+      "Seyssel",
+      "Usinens"
     ]
   },
   {
@@ -14,9 +26,21 @@
     "nom": "Cruseilles / Groisy",
     "couleur": "#f28e2b",
     "communes": [
-      "Allonzier-la-Caille","Andilly","Cercier","Cernex","Charvonnex","Copponex",
-      "Cruseilles","Cuvat","Fillières","Groisy","Menthonnex-en-Bornes","Villaz",
-      "Villy-le-Bouveret","Villy-le-Pelloux","Vovray-en-Bornes"
+      "Allonzier-la-Caille",
+      "Andilly",
+      "Cercier",
+      "Cernex",
+      "Charvonnex",
+      "Copponex",
+      "Cruseilles",
+      "Cuvat",
+      "Fillières",
+      "Groisy",
+      "Menthonnex-en-Bornes",
+      "Villaz",
+      "Villy-le-Bouveret",
+      "Villy-le-Pelloux",
+      "Vovray-en-Bornes"
     ]
   },
   {
@@ -24,11 +48,34 @@
     "nom": "Rumilly / Alby sur Chéran",
     "couleur": "#e15759",
     "communes": [
-      "Alby-sur-Chéran","Allèves","Bloye","Boussy","Chainaz-les-Frasses","Chapeiry",
-      "Cusy","Etercy","Gruffy","Hauteville-sur-Fier","Héry-sur-Alby","Lornay",
-      "Marcellaz-Albanais","Marigny-Saint-Marcel","Massingy","Moye","Mûres","Rumilly",
-      "Saint-Eusèbe","Saint-Félix","Saint-Sylvestre","Sales","Thusy",
-      "Val-de-Fier","Vallières","Vaulx","Versonnex","Viuz-la-Chiesaz"
+      "Alby-sur-Chéran",
+      "Allèves",
+      "Bloye",
+      "Boussy",
+      "Chainaz-les-Frasses",
+      "Chapeiry",
+      "Cusy",
+      "Etercy",
+      "Gruffy",
+      "Hauteville-sur-Fier",
+      "Héry-sur-Alby",
+      "Lornay",
+      "Marcellaz-Albanais",
+      "Marigny-Saint-Marcel",
+      "Massingy",
+      "Moye",
+      "Mûres",
+      "Rumilly",
+      "Saint-Eusèbe",
+      "Saint-Félix",
+      "Saint-Sylvestre",
+      "Sales",
+      "Thusy",
+      "Val-de-Fier",
+      "Vallières-sur-Fier",
+      "Vaulx",
+      "Versonnex",
+      "Viuz-la-Chiésaz"
     ]
   },
   {
@@ -36,8 +83,13 @@
     "nom": "Bonneville / Saint-Pierre-en-Faucigny",
     "couleur": "#76b7b2",
     "communes": [
-      "Ayze","Bonneville","Contamine-sur-Arve","Faucigny","Glières-Val-de-Bornes",
-      "Saint-Laurent","Saint-Pierre-en-Faucigny"
+      "Ayse",
+      "Bonneville",
+      "Contamine-sur-Arve",
+      "Faucigny",
+      "Glières-Val-de-Bornes",
+      "Saint-Laurent",
+      "Saint-Pierre-en-Faucigny"
     ]
   },
   {
@@ -45,8 +97,17 @@
     "nom": "Annemasse / Gaillard / Ville-la-Grand",
     "couleur": "#59a14f",
     "communes": [
-      "Ambilly","Annemasse","Bonne","Cranves-Sales","Etrembières","Gaillard",
-      "Juvigny","Lucinges","Saint-Cergues","Vétraz-Monthoux","Ville-la-Grand"
+      "Ambilly",
+      "Annemasse",
+      "Bonne",
+      "Cranves-Sales",
+      "Etrembières",
+      "Gaillard",
+      "Juvigny",
+      "Lucinges",
+      "Saint-Cergues",
+      "Vétraz-Monthoux",
+      "Ville-la-Grand"
     ]
   },
   {
@@ -54,9 +115,22 @@
     "nom": "Reignier / La Roche-sur-Foron",
     "couleur": "#edc948",
     "communes": [
-      "Amancy","Arbusigny","Arenthon","Arthaz-Pont-Notre-Dame","Cornier","Eteaux",
-      "Fillinges","La Chapelle-Rambaud","La Muraz","La Roche-sur-Foron",
-      "Monnetier-Mornex","Nangy","Pers-Jussy","Reignier-Ésery","Saint-Sixt","Scientrier"
+      "Amancy",
+      "Arbusigny",
+      "Arenthon",
+      "Arthaz-Pont-Notre-Dame",
+      "Cornier",
+      "Etaux",
+      "Fillinges",
+      "La Chapelle-Rambaud",
+      "La Muraz",
+      "La Roche-sur-Foron",
+      "Monnetier-Mornex",
+      "Nangy",
+      "Pers-Jussy",
+      "Reignier-Esery",
+      "Saint-Sixt",
+      "Scientrier"
     ]
   },
   {
@@ -64,8 +138,13 @@
     "nom": "Samoëns / Taninges",
     "couleur": "#b07aa1",
     "communes": [
-      "La Rivière-Enverse","Mieussy","Morillon","Samoëns","Sixt-Fer-à-Cheval",
-      "Taninges","Verchaix"
+      "La Rivière-Enverse",
+      "Mieussy",
+      "Morillon",
+      "Samoëns",
+      "Sixt-Fer-à-Cheval",
+      "Taninges",
+      "Verchaix"
     ]
   },
   {
@@ -73,11 +152,30 @@
     "nom": "Grand Annecy",
     "couleur": "#ff9da7",
     "communes": [
-      "Annecy","Argonay","Chavanod","Choisy","Duingt","Épagny-Metz-Tessy",
-      "La Balme-de-Sillingy","La Chapelle-Saint-Maurice","Leschaux","Lovagny",
-      "Menthon-Saint-Bernard","Mesigny","Montagny-les-Lanches","Nâves-Parmelan",
-      "Nonglard","Poisy","Quintal","Saint-Eustache","Saint-Jorioz","Sallenôves",
-      "Seynod","Sevrier","Sillingy","Talloires-Montmin","Veyrier-du-Lac"
+      "Annecy",
+      "Argonay",
+      "Chavanod",
+      "Choisy",
+      "Duingt",
+      "Epagny Metz-Tessy",
+      "La Balme-de-Sillingy",
+      "La Chapelle-Saint-Maurice",
+      "Leschaux",
+      "Lovagny",
+      "Menthon-Saint-Bernard",
+      "Mésigny",
+      "Montagny-les-Lanches",
+      "Nâves-Parmelan",
+      "Nonglard",
+      "Poisy",
+      "Quintal",
+      "Saint-Eustache",
+      "Saint-Jorioz",
+      "Sallenôves",
+      "Sevrier",
+      "Sillingy",
+      "Talloires-Montmin",
+      "Veyrier-du-Lac"
     ]
   },
   {
@@ -85,9 +183,19 @@
     "nom": "Chamonix / Megève / Passy / Sallanches",
     "couleur": "#9c755f",
     "communes": [
-      "Chamonix-Mont-Blanc","Combloux","Cordon","Domancy","Les Contamines-Montjoie",
-      "Les Houches","Megève","Passy","Praz-sur-Arly","Saint-Gervais-les-Bains",
-      "Sallanches","Servoz","Vallorcine"
+      "Chamonix-Mont-Blanc",
+      "Combloux",
+      "Cordon",
+      "Domancy",
+      "Les Contamines-Montjoie",
+      "Les Houches",
+      "Megève",
+      "Passy",
+      "Praz-sur-Arly",
+      "Saint-Gervais-les-Bains",
+      "Sallanches",
+      "Servoz",
+      "Vallorcine"
     ]
   },
   {
@@ -95,8 +203,17 @@
     "nom": "Cluses / Scionzier",
     "couleur": "#bab0ac",
     "communes": [
-      "Arâches-la-Frasse","Brison","Châtillon-sur-Cluses","Cluses","Le Reposoir",
-      "Magland","Marnaz","Mont-Saxonnex","Nancy-sur-Cluses","Saint-Sigismond","Scionzier"
+      "Arâches-la-Frasse",
+      "Brizon",
+      "Châtillon-sur-Cluses",
+      "Cluses",
+      "Le Reposoir",
+      "Magland",
+      "Marnaz",
+      "Mont-Saxonnex",
+      "Nancy-sur-Cluses",
+      "Saint-Sigismond",
+      "Scionzier"
     ]
   },
   {
@@ -104,7 +221,11 @@
     "nom": "Abondance",
     "couleur": "#d37295",
     "communes": [
-      "Abondance","Châtel","Chevenoz","La Chapelle-d'Abondance","Vacheresse"
+      "Abondance",
+      "Châtel",
+      "Chevenoz",
+      "La Chapelle-d'Abondance",
+      "Vacheresse"
     ]
   },
   {
@@ -112,9 +233,19 @@
     "nom": "Évian / Saint-Paul-en-Chablais",
     "couleur": "#8cd17d",
     "communes": [
-      "Bernex","Champanges","Évian-les-Bains","Féternes","Larringes","Lugrin",
-      "Maxilly-sur-Léman","Neuvecelle","Publier","Saint-Gingolph",
-      "Saint-Paul-en-Chablais","Thollon-les-Mémises","Vinzier"
+      "Bernex",
+      "Champanges",
+      "Evian-les-Bains",
+      "Féternes",
+      "Larringes",
+      "Lugrin",
+      "Maxilly-sur-Léman",
+      "Neuvecelle",
+      "Publier",
+      "Saint-Gingolph",
+      "Saint-Paul-en-Chablais",
+      "Thollon-les-Mémises",
+      "Vinzier"
     ]
   },
   {
@@ -122,7 +253,12 @@
     "nom": "Faverges",
     "couleur": "#86bcb6",
     "communes": [
-      "Doussard","Faverges-Seythenex","Giez","Lathuile","Saint-Ferréol","Val-de-Chaise"
+      "Doussard",
+      "Faverges-Seythenex",
+      "Giez",
+      "Lathuile",
+      "Saint-Ferréol",
+      "Val de Chaise"
     ]
   },
   {
@@ -130,8 +266,16 @@
     "nom": "Saint-Julien / Vulbens",
     "couleur": "#f1ce63",
     "communes": [
-      "Chenex","Chevrier","Dingy-en-Vuache","Feigères","Jonzier-Épagny","Savigny",
-      "Valleiry","Vers","Viry","Vulbens"
+      "Chênex",
+      "Chevrier",
+      "Dingy-en-Vuache",
+      "Feigères",
+      "Jonzier-Epagny",
+      "Savigny",
+      "Valleiry",
+      "Vers",
+      "Viry",
+      "Vulbens"
     ]
   },
   {
@@ -139,7 +283,12 @@
     "nom": "Saint-Julien Jean-Jacques Rousseau",
     "couleur": "#4dc5b9",
     "communes": [
-      "Archamps","Beaumont","Bossey","Collonges-sous-Salève","Neydens","Saint-Julien-en-Genevois"
+      "Archamps",
+      "Beaumont",
+      "Bossey",
+      "Collonges-sous-Salève",
+      "Neydens",
+      "Saint-Julien-en-Genevois"
     ]
   },
   {
@@ -147,10 +296,25 @@
     "nom": "Boëge / Marignier / Saint-Jeoire",
     "couleur": "#a0cbe8",
     "communes": [
-      "Boëge","Bogève","Burdignin","Habère-Lullin","Habère-Poche","La Tour",
-      "Marcellaz","Marignier","Mégevette","Onnion","Peillonnex",
-      "Saint-André-de-Boëge","Saint-Jean-de-Tholome","Saint-Jeoire","Thyez",
-      "Villard","Ville-en-Sallaz","Viuz-en-Sallaz","Vougy"
+      "Boëge",
+      "Bogève",
+      "Burdignin",
+      "Habère-Lullin",
+      "Habère-Poche",
+      "La Tour",
+      "Marcellaz",
+      "Marignier",
+      "Mégevette",
+      "Onnion",
+      "Peillonnex",
+      "Saint-André-de-Boëge",
+      "Saint-Jean-de-Tholome",
+      "Saint-Jeoire",
+      "Thyez",
+      "Villard",
+      "Ville-en-Sallaz",
+      "Viuz-en-Sallaz",
+      "Vougy"
     ]
   },
   {
@@ -158,9 +322,17 @@
     "nom": "Thônes",
     "couleur": "#e15759",
     "communes": [
-      "Alex","Dingy-Saint-Clair","La Balme-de-Thuy","Le Bouchet-Mont-Charvin",
-      "Le Grand-Bornand","Les Clefs","Les Villards-sur-Thônes","Manigod",
-      "Saint-Jean-de-Sixt","Serraval","Thônes"
+      "Alex",
+      "Dingy-Saint-Clair",
+      "La Balme-de-Thuy",
+      "Le Bouchet-Mont-Charvin",
+      "Le Grand-Bornand",
+      "Les Clefs",
+      "Les Villards-sur-Thônes",
+      "Manigod",
+      "Saint-Jean-de-Sixt",
+      "Serraval",
+      "Thônes"
     ]
   },
   {
@@ -168,8 +340,16 @@
     "nom": "Saint-Jean-d'Aulps",
     "couleur": "#76b7b2",
     "communes": [
-      "Essert-Romand","La Baume","La Côte-d'Arbroz","La Vernaz","Le Biot",
-      "Les Gets","Montriond","Morzine","Saint-Jean-d'Aulps","Seytroux"
+      "Essert-Romand",
+      "La Baume",
+      "La Côte-d'Arbroz",
+      "La Vernaz",
+      "Le Biot",
+      "Les Gets",
+      "Montriond",
+      "Morzine",
+      "Saint-Jean-d'Aulps",
+      "Seytroux"
     ]
   },
   {
@@ -177,8 +357,20 @@
     "nom": "Thonon / Margencel",
     "couleur": "#f28e2b",
     "communes": [
-      "Allinges","Anthy-sur-Léman","Bellevaux","Excenevex","La Forclaz","Lullin",
-      "Lyaud","Margencel","Marin","Orcier","Reyvroz","Sciez","Thonon-les-Bains","Vailly"
+      "Allinges",
+      "Anthy-sur-Léman",
+      "Bellevaux",
+      "Excenevex",
+      "La Forclaz",
+      "Lullin",
+      "Lyaud",
+      "Margencel",
+      "Marin",
+      "Orcier",
+      "Reyvroz",
+      "Sciez",
+      "Thonon-les-Bains",
+      "Vailly"
     ]
   },
   {
@@ -186,9 +378,22 @@
     "nom": "Bons-en-Chablais / Douvaine",
     "couleur": "#59a14f",
     "communes": [
-      "Ballaison","Bons-en-Chablais","Brenthonne","Cervens","Chens-sur-Léman",
-      "Douvaine","Draillant","Fessy","Loisin","Lully","Machilly","Massongy",
-      "Messery","Perrignier","Veigy-Foncenex","Yvoire"
+      "Ballaison",
+      "Bons-en-Chablais",
+      "Brenthonne",
+      "Cervens",
+      "Chens-sur-Léman",
+      "Douvaine",
+      "Draillant",
+      "Fessy",
+      "Loisin",
+      "Lully",
+      "Machilly",
+      "Massongy",
+      "Messery",
+      "Perrignier",
+      "Veigy-Foncenex",
+      "Yvoire"
     ]
   }
 ]
