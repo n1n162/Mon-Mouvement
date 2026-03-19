@@ -17,8 +17,8 @@ if (!dept) {
 // Remplace par ton URL GitHub Raw
 const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/n1n162/Mon-Mouvement/refs/heads/V2/public';
 
-const inputFile = `zones_${dept}.json`;
-const outputFile = `zones_${dept}.geojson`;
+const inputFile = fs.existsSync(`zones_${dept}.json`) ? `zones_${dept}.json` : `../public/zones_${dept}.json`;
+const outputFile = fs.existsSync(`zones_${dept}.json`) ? `zones_${dept}.geojson` : `../public/zones_${dept}.geojson`;
 
 if (!fs.existsSync(inputFile)) {
   console.error(`❌ Fichier ${inputFile} introuvable dans le dossier courant.`);
