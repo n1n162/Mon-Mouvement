@@ -72,7 +72,7 @@
   { "code": "70", "nom": "Haute-Saône", "actif": false },
   { "code": "71", "nom": "Saône-et-Loire", "actif": false },
   { "code": "72", "nom": "Sarthe", "actif": false },
-  { "code": "73", "nom": "Savoie", "actif": false },
+  { "code": "73", "nom": "Savoie", "actif": true },
   { "code": "74", "nom": "Haute-Savoie", "actif": false },
   { "code": "75", "nom": "Paris", "actif": false },
   { "code": "76", "nom": "Seine-Maritime", "actif": false },
