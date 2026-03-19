@@ -15,7 +15,7 @@
       "Franclens",
       "Frangy",
       "Marlioz",
-      "Menthonnex-en-Bornes",
+      "seyssel-frangy",
       "Minzier",
       "Seyssel",
       "Usinens"
@@ -34,7 +34,7 @@
       "Copponex",
       "Cruseilles",
       "Cuvat",
-      "Fillières",
+      "cruseilles-groisy",
       "Groisy",
       "Menthonnex-en-Bornes",
       "Villaz",
@@ -87,7 +87,7 @@
       "Bonneville",
       "Contamine-sur-Arve",
       "Faucigny",
-      "Glières-Val-de-Bornes",
+      "bonneville-saint-pierre-en-faucigny",
       "Saint-Laurent",
       "Saint-Pierre-en-Faucigny"
     ]
@@ -258,7 +258,8 @@
       "Giez",
       "Lathuile",
       "Saint-Ferréol",
-      "Val de Chaise"
+      "Val de Chaise",
+      "Entrevernes"
     ]
   },
   {
@@ -332,6 +333,7 @@
       "Manigod",
       "Saint-Jean-de-Sixt",
       "Serraval",
+      "La Clusaz",
       "Thônes"
     ]
   },
