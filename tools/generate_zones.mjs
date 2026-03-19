@@ -169,13 +169,27 @@ async function main() {
 
     for (const nom of zone.communes) {
       const realName = matchCommune(nom, schoolIndex);
-      const feature = geoIndex[normalize(realName)] || geoIndex[normalize(nom)];
+      const stripArticle = s => normalize(s).replace(/^(le|la|les|l) /, '');
+      const feature = geoIndex[normalize(realName)]
+        || geoIndex[normalize(nom)]
+        || Object.values(geoIndex).find(f => {
+            const fn = normalize(f.properties.nom || f.properties.NOM_COM || '');
+            return stripArticle(fn) === stripArticle(realName)
+                || stripArticle(fn) === stripArticle(nom);
+          });
 
-      if (feature && feature.geometry) {
+      if (feature && feature.geometry && feature.geometry.type) {
         try {
-          communePolygons.push(turf.feature(feature.geometry));
-          correctedCommunes.push(realName);
-          process.stdout.write('.');
+          const turfFeature = turf.feature(feature.geometry);
+          if (turfFeature && turfFeature.geometry) {
+            communePolygons.push(turfFeature);
+            correctedCommunes.push(realName);
+            process.stdout.write('.');
+          } else {
+            missed.push(nom);
+            correctedCommunes.push(realName);
+            process.stdout.write('x');
+          }
         } catch (e) {
           missed.push(nom);
           correctedCommunes.push(realName);
@@ -187,7 +201,6 @@ async function main() {
         process.stdout.write('?');
       }
     }
-
     totalFound += communePolygons.length;
     totalMissed += missed.length;
 
