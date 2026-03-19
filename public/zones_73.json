@@ -1,0 +1,159 @@
+[
+  {
+    "id": "bassin-chamberien",
+    "nom": "Bassin Chambérien",
+    "couleur": "#4e79a7",
+    "communes": [
+      "Barberaz","Barby","Bassens","Challes-les-Eaux","Cognin","Curienne",
+      "Jacob-Bellecombette","Montagnole","La Motte-Servolex","La Ravoire","La Thuile",
+      "Les Déserts","Puygros","Saint-Alban-Leysse","Saint-Baldoph","Saint-Cassin",
+      "Saint-Jean-d'Arvey","Saint-Jeoire-Prieuré","Saint-Sulpice","Saint-Thibaud-de-Couz",
+      "Sonnaz","Thoiry","Vimines"
+    ]
+  },
+  {
+    "id": "bassin-aixois",
+    "nom": "Bassin Aixois",
+    "couleur": "#f28e2b",
+    "communes": [
+      "Bourdeau","Brison-Saint-Innocent","Drumettaz-Clarafond","Entrelacs",
+      "Grésy-sur-Aix","La Biolle","Le Bourget-du-Lac","Méry","Mouxy","Montcel",
+      "Pugny-Chatenod","Saint-Offenge","Saint-Ours","Tresserve","Trévignin",
+      "Viviers-du-Lac","Voglans"
+    ]
+  },
+  {
+    "id": "coeur-de-savoie",
+    "nom": "Cœur de Savoie",
+    "couleur": "#e15759",
+    "communes": [
+      "Apremont","Arbin","Chignin","Cruet","Fréterive","Laissaud","Les Mollettes",
+      "Montmélian","Myans","Planaise","Porte de Savoie","Sainte-Hélène-du-Lac",
+      "Saint-Jean-de-la-Porte","Saint-Pierre-d'Albigny","Saint-Pierre-de-Soucy"
+    ]
+  },
+  {
+    "id": "val-gelon",
+    "nom": "Val Gelon",
+    "couleur": "#76b7b2",
+    "communes": [
+      "Arvillard","Bourget-en-Huile","Chamoux-sur-Gelon","Châteauneuf",
+      "La Chapelle-Blanche","Coise-Saint-Jean-Pied-Gauthier","Val Gelon-La Rochette",
+      "Presle","Villard-Léger","Villard-Sallet"
+    ]
+  },
+  {
+    "id": "albertville-ugine",
+    "nom": "Albertville / Ugine",
+    "couleur": "#59a14f",
+    "communes": [
+      "Albertville","Allondaz","Beaufort-sur-Doron","Bonvillard","Césarches","Cevins",
+      "Cléry","Esserts-Blay","Frontenex","Gilly-sur-Isère","Grignon","La Bâthie",
+      "Marthod","Mercury","Montailleur","Monthion","Notre-Dame-des-Millières","Pallud",
+      "Queige","Rognaix","Sainte-Hélène-sur-Isère","Saint-Paul-sur-Isère","Saint-Vital",
+      "Thénésol","Tournon","Tours-en-Savoie","Ugine","Venthon","Verrens-Arvey",
+      "Villard-sur-Doron"
+    ]
+  },
+  {
+    "id": "bauges",
+    "nom": "Bauges",
+    "couleur": "#edc948",
+    "communes": [
+      "Aillon-le-Jeune","Aillon-le-Vieux","Arith","Bellecombes-en-Bauges",
+      "Le Châtelard","École","Lescheraines"
+    ]
+  },
+  {
+    "id": "avant-pays-savoyard",
+    "nom": "Avant Pays Savoyard",
+    "couleur": "#b07aa1",
+    "communes": [
+      "Attignat-Oncin","Avressieux","Ayn","Belmont-Tramonet","La Bridoire",
+      "Champagneux","Domessin","Dullin","Lépin-le-Lac","Les Échelles","Novalaise",
+      "Le Pont-de-Beauvoisin","Rochefort","Saint-Alban-de-Montbel","Saint-Béron",
+      "Saint-Genix-les-Villages","Saint-Jean-de-Couz","Verel-de-Montbel"
+    ]
+  },
+  {
+    "id": "yenne",
+    "nom": "Yenne",
+    "couleur": "#ff9da7",
+    "communes": [
+      "Billième","Jongieux","Lucey","Meyrieux-Trouet","Saint-Jean-de-Chevelu",
+      "Saint-Paul-sur-Yenne","Traize","Verthemex","Yenne"
+    ]
+  },
+  {
+    "id": "chautagne",
+    "nom": "Chautagne",
+    "couleur": "#9c755f",
+    "communes": [
+      "Chanaz","Chindrieux","Conjux","Motz","Ruffieux","Saint-Pierre-de-Curtille",
+      "Serrières-en-Chautagne","Vions"
+    ]
+  },
+  {
+    "id": "portes-de-maurienne",
+    "nom": "Portes de Maurienne",
+    "couleur": "#bab0ac",
+    "communes": [
+      "Aiton","Argentine","Épierre","La Chambre","La Chapelle","Les Chavannes-en-Maurienne",
+      "Saint-Alban-d'Hurtières","Saint-Georges-des-Hurtières","Saint-Avre",
+      "Saint-Étienne-de-Cuines","Saint-Léger","Sainte-Marie-de-Cuines",
+      "Saint-Martin-sur-la-Chambre","Saint-Rémy-de-Maurienne","Val d'Arc"
+    ]
+  },
+  {
+    "id": "coeur-de-maurienne",
+    "nom": "Cœur de Maurienne",
+    "couleur": "#d37295",
+    "communes": [
+      "La Tour-en-Maurienne","Saint-Jean-de-Maurienne","Jarrier",
+      "Saint-Julien-Mont-Denis","Saint-Martin-d'Arc","Saint-Martin-de-la-Porte",
+      "Saint-Michel-de-Maurienne","Orelle","Villargondran"
+    ]
+  },
+  {
+    "id": "moutiers",
+    "nom": "Moutiers",
+    "couleur": "#8cd17d",
+    "communes": [
+      "Grand Aigueblanche","Les Avanchers-Valmorel","Hautecour","Moûtiers-Tarentaise",
+      "La Léchère","Saint-Marcel","Salins-les-Thermes"
+    ]
+  },
+  {
+    "id": "aime",
+    "nom": "Aime",
+    "couleur": "#86bcb6",
+    "communes": [
+      "Aime-la-Plagne","Landry","La Plagne-Tarentaise","Peisey-Nancroix"
+    ]
+  },
+  {
+    "id": "bourg-saint-maurice",
+    "nom": "Bourg Saint Maurice",
+    "couleur": "#f1ce63",
+    "communes": [
+      "Bourg-Saint-Maurice","Les Chapelles","Seez","Sainte-Foy-Tarentaise"
+    ]
+  },
+  {
+    "id": "bozel",
+    "nom": "Bozel",
+    "couleur": "#4dc5b9",
+    "communes": [
+      "Les Allues","Bozel","Brides-les-Bains","Champagny-en-Vanoise","Courchevel",
+      "Feissons-sur-Salins","Montagny","Planay"
+    ]
+  },
+  {
+    "id": "haute-maurienne",
+    "nom": "Haute Maurienne",
+    "couleur": "#a0cbe8",
+    "communes": [
+      "Aussois","Avrieux","Fourneaux","Modane","Saint-André","Val Cenis"
+    ]
+  }
+]
