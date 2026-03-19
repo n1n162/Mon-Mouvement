@@ -147,20 +147,36 @@ function getDeptName(code) {
   return names[code.padStart(2,'0')] || code;
 }
 
+// Charge une commune par son code INSEE (pour les communes récentes)
+async function fetchCommuneByCode(code) {
+  try {
+    const url = `https://geo.api.gouv.fr/communes/${code}?fields=nom,code,contour&format=json&geometry=contour`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.contour) return null;
+    return { type: 'Feature', properties: { nom: data.nom, code: data.code }, geometry: data.contour };
+  } catch (e) { return null; }
+}
+
 // Fallback : API geo.gouv.fr
 async function loadFromGeoAPI(codeDept) {
   console.log(`🔄 Fallback : API geo.gouv.fr...`);
   const url = `https://geo.api.gouv.fr/communes?codeDepartement=${codeDept}&fields=nom,code,contour&format=json&geometry=contour`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  console.log(`✅ ${data.length} communes via API`);
-  // Convertir au format GeoJSON features
-  return data.filter(c => c.contour).map(c => ({
-    type: 'Feature',
-    properties: { nom: c.nom, code: c.code },
-    geometry: c.contour
-  }));
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    console.log(`✅ ${data.length} communes via API`);
+    return data.filter(c => c.contour).map(c => ({
+      type: 'Feature',
+      properties: { nom: c.nom, code: c.code },
+      geometry: c.contour
+    }));
+  } catch(e) {
+    console.warn(`⚠️  API geo.gouv.fr échouée: ${e.message}`);
+    return [];
+  }
 }
 
 async function main() {
@@ -215,9 +231,42 @@ async function main() {
           process.stdout.write('x');
         }
       } else {
-        missed.push(nom);
-        correctedCommunes.push(realName);
-        process.stdout.write('?');
+        // Tentative de récupération individuelle via API (communes récentes)
+        const searchName = encodeURIComponent(realName);
+        try {
+          const apiUrl = `https://geo.api.gouv.fr/communes?nom=${searchName}&fields=nom,code&format=json&limit=1`;
+          const apiRes = await fetch(apiUrl);
+          if (apiRes.ok) {
+            const apiData = await apiRes.json();
+            if (apiData.length > 0) {
+              const byCode = await fetchCommuneByCode(apiData[0].code);
+              if (byCode) {
+                const tf = turf.feature(byCode.geometry);
+                communePolygons.push(tf);
+                // Ajouter au geoIndex pour les prochaines recherches
+                geoIndex[normalize(byCode.properties.nom)] = byCode;
+                correctedCommunes.push(realName);
+                process.stdout.write('+');
+              } else {
+                missed.push(nom);
+                correctedCommunes.push(realName);
+                process.stdout.write('?');
+              }
+            } else {
+              missed.push(nom);
+              correctedCommunes.push(realName);
+              process.stdout.write('?');
+            }
+          } else {
+            missed.push(nom);
+            correctedCommunes.push(realName);
+            process.stdout.write('?');
+          }
+        } catch(e) {
+          missed.push(nom);
+          correctedCommunes.push(realName);
+          process.stdout.write('?');
+        }
       }
     }
     totalFound += communePolygons.length;
