@@ -93,23 +93,28 @@ async function loadAllCommunes(codeDept) {
     console.warn(`⚠️  Source gregoiredavid échouée : ${e.message}`);
   }
 
-  // Compléter avec l'API geo.gouv.fr pour les communes récentes (fusions)
-  // L'API est la référence officielle et à jour
-  console.log(`🔄 Complétion avec l'API geo.gouv.fr (communes récentes)...`);
-  const apiFeatures = await loadFromGeoAPI(codeDept);
-
-  // Index des communes déjà chargées par code
-  const existingCodes = new Set(features.map(f => f.properties.code).filter(Boolean));
-
-  // Ajouter les communes de l'API qui ne sont pas dans gregoiredavid
-  let added = 0;
-  for (const f of apiFeatures) {
-    if (!existingCodes.has(f.properties.code)) {
-      features.push(f);
-      added++;
+  // Compléter avec les communes récentes (fusions) via requêtes individuelles
+  // On récupère toute la liste sans contour (léger) puis on charge les contours manquants
+  console.log(`🔄 Recherche des communes récentes manquantes...`);
+  try {
+    const listUrl = `https://geo.api.gouv.fr/communes?codeDepartement=${codeDept}&fields=nom,code&format=json&limit=700`;
+    const listRes = await fetch(listUrl);
+    if (listRes.ok) {
+      const allCommunes = await listRes.json();
+      const existingCodes = new Set(features.map(f => f.properties.code).filter(Boolean));
+      const missing = allCommunes.filter(c => !existingCodes.has(c.code));
+      console.log(`  ${missing.length} communes récentes à charger individuellement...`);
+      let added = 0;
+      for (const c of missing) {
+        const f = await fetchCommuneByCode(c.code);
+        if (f) { features.push(f); added++; }
+        await new Promise(r => setTimeout(r, 50));
+      }
+      if (added > 0) console.log(`  + ${added} communes récentes ajoutées`);
     }
+  } catch(e) {
+    console.warn(`⚠️  Impossible de charger les communes récentes: ${e.message}`);
   }
-  if (added > 0) console.log(`  + ${added} communes récentes ajoutées depuis l'API`);
 
   console.log(`✅ Total : ${features.length} communes`);
   return features;
