@@ -1,8 +1,0 @@
-node -e "
-const fetch = (await import('node-fetch')).default;
-const res = await fetch('https://geo.api.gouv.fr/communes?codeDepartement=73&fields=nom,code&format=json&limit=500');
-const data = await res.json();
-const fs = await import('fs');
-fs.writeFileSync('communes_73.txt', data.sort((a,b) => a.nom.localeCompare(b.nom)).map(c => c.nom + ' (' + c.code + ')').join('\n'));
-console.log('Fichier communes_73.txt créé -', data.length, 'communes');
-" --input-type=module
