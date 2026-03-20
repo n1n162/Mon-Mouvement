@@ -73,7 +73,14 @@ async function fetchSchools(dept) {
   let total = null;
 
   while (true) {
-    const url = `${API_EDU}?where=${encodeURIComponent(where)}&select=${encodeURIComponent(FIELDS)}&limit=${limit}&offset=${offset}&order_by=nom_commune,nom_etablissement`;
+    const params = new URLSearchParams({
+      where,
+      select: FIELDS,
+      limit: limit.toString(),
+      offset: offset.toString(),
+      order_by: 'nom_commune,nom_etablissement'
+    });
+    const url = `${API_EDU}?${params}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
