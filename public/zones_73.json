@@ -26,7 +26,8 @@
       "Saint-Thibaud-de-Couz",
       "Sonnaz",
       "Thoiry",
-      "Vimines"
+      "Vimines",
+      "Chambéry"
     ]
   },
   {
@@ -50,7 +51,8 @@
       "Tresserve",
       "Trévignin",
       "Viviers-du-Lac",
-      "Voglans"
+      "Voglans",
+      "Aix-les-Bains"
     ]
   },
   {
@@ -72,7 +74,10 @@
       "Sainte-Hélène-du-Lac",
       "Saint-Jean-de-la-Porte",
       "Saint-Pierre-d'Albigny",
-      "Saint-Pierre-de-Soucy"
+      "Saint-Pierre-de-Soucy",
+      "Valgelon-La Rochette",
+      "Grésy-sur-Isère",
+      "Bellecombe-en-Bauges"
     ]
   },
   {
@@ -89,7 +94,8 @@
       "Valgelon-La Rochette",
       "Presle",
       "Villard-Léger",
-      "Villard-Sallet"
+      "Villard-Sallet",
+      "Valgelon-La Rochette"
     ]
   },
   {
@@ -126,7 +132,16 @@
       "Ugine",
       "Venthon",
       "Verrens-Arvey",
-      "Villard-sur-Doron"
+      "Villard-sur-Doron",
+      "Beaufort",
+      "Crest-Voland",
+      "Flumet",
+      "Hauteluce",
+      "La Giettaz",
+      "Montvalezan",
+      "Notre-Dame-de-Bellecombe",
+      "Saint-Nicolas-la-Chapelle",
+      "Villaroger"
     ]
   },
   {
@@ -140,7 +155,9 @@
       "Bellecombe-en-Bauges",
       "Le Châtelard",
       "Ecole",
-      "Lescheraines"
+      "Lescheraines",
+      "Bellecombe-en-Bauges",
+      "Entremont-le-Vieux"
     ]
   },
   {
@@ -163,9 +180,10 @@
       "Rochefort",
       "Saint-Alban-de-Montbel",
       "Saint-Béron",
-      "Saint-Genix-les-Guiers",
+      "Saint-Genix-les-Villages",
       "Saint-Jean-de-Couz",
-      "Verel-de-Montbel"
+      "Verel-de-Montbel",
+      "Saint-Pierre-d'Entremont"
     ]
   },
   {
@@ -181,7 +199,9 @@
       "Saint-Paul-lès-Yenne",
       "Traize",
       "Verthemex",
-      "Yenne"
+      "Yenne",
+      "Saint-Paul-lès-Yenne",
+      "Saint-Paul-sur-Yenne"
     ]
   },
   {
@@ -218,7 +238,15 @@
       "Sainte-Marie-de-Cuines",
       "Saint-Martin-sur-la-Chambre",
       "Saint-Rémy-de-Maurienne",
-      "Val-d'Arc"
+      "Val-d'Arc",
+      "Saint-Georges-d'Hurtières",
+      "Albiez-Montrond",
+      "Fontcouverte-la-Toussuire",
+      "Saint-Colomban-des-Villards",
+      "Saint-Jean-d'Arves",
+      "Saint-Sorlin-d'Arves",
+      "Valloire",
+      "Valmeinier"
     ]
   },
   {
@@ -234,7 +262,9 @@
       "Saint-Martin-de-la-Porte",
       "Saint-Michel-de-Maurienne",
       "Orelle",
-      "Villargondran"
+      "Villargondran",
+      "Saint François Longchamp",
+      "Saint François Longchamp"
     ]
   },
   {
@@ -242,13 +272,17 @@
     "nom": "Moutiers",
     "couleur": "#8cd17d",
     "communes": [
-      "Aigueblanche",
+      "Grand-Aigueblanche",
       "Les Avanchers-Valmorel",
       "Hautecour",
       "Moûtiers",
       "La Léchère",
       "Saint-Marcel",
-      "Salins-les-Thermes"
+      "Salins-Fontaine",
+      "Moûtiers",
+      "Salins-Fontaine",
+      "Les Belleville",
+      "Pralognan-la-Vanoise"
     ]
   },
   {
@@ -298,7 +332,11 @@
       "Fourneaux",
       "Modane",
       "Saint-André",
-      "Val-Cenis"
+      "Val-Cenis",
+      "Bessans",
+      "Bonneval-sur-Arc",
+      "Tignes",
+      "Val-d'Isère"
     ]
   }
 ]
