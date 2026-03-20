@@ -73,9 +73,15 @@ async function fetchSchools(dept) {
   let total = null;
 
   while (true) {
-    const url = `${API_EDU}?where=${encodeURIComponent(where)}&select=${encodeURIComponent(FIELDS)}&limit=${limit}&offset=${offset}&order_by=${encodeURIComponent('nom_commune,nom_etablissement')}`;
+    const url = `${API_EDU}?where=${encodeURIComponent(where)}&limit=${limit}&offset=${offset}`;
+    if (offset === 0) console.log(`  🔗 URL: ${url.substring(0, 120)}...`);
     const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      const body = await res.text();
+      console.error(`  URL complète: ${url}`);
+      console.error(`  Réponse: ${body.substring(0, 200)}`);
+      throw new Error(`HTTP ${res.status}`);
+    }
     const data = await res.json();
     
     if (total === null) {
