@@ -26,7 +26,7 @@
   { "code": "24", "nom": "Dordogne", "actif": false },
   { "code": "25", "nom": "Doubs", "actif": false },
   { "code": "26", "nom": "Drôme", "actif": false },
-  { "code": "27", "nom": "Eure", "actif": false },
+  { "code": "27", "nom": "Eure", "actif": true },
   { "code": "28", "nom": "Eure-et-Loir", "actif": false },
   { "code": "29", "nom": "Finistère", "actif": false },
   { "code": "30", "nom": "Gard", "actif": false },
