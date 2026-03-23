@@ -13,8 +13,7 @@
     <header>
       <div class="container">
         <h1><i class="fas fa-school"></i> Mon mouvement</h1>
-        <!-- Bouton déconnexion affiché une fois connecté -->
-        <div id="userMenu" style="display:none; font-size:13px; color:white; display:flex; align-items:center; gap:10px;">
+        <div id="userMenu" style="display:none; font-size:13px; color:white; align-items:center; gap:10px;">
           <span id="headerUserEmail"></span>
           <button onclick="handleLogout()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px;">
             Déconnexion
@@ -53,17 +52,14 @@
         <div class="search-card">
           <h2><i class="fas fa-search"></i> Affiner votre recherche</h2>
           <p class="search-subtitle">Utilisez les filtres ci-dessous pour trouver les écoles qui vous correspondent</p>
-
           <form id="filterForm">
             <div class="criteria-sections">
               <div class="criteria-section">
                 <h3><i class="fas fa-map-marker-alt"></i> Localisation</h3>
-
                 <div id="positionBanner" style="display:none; background:#fff3cd; border:1px solid #ffc107; border-radius:8px; padding:10px 14px; margin-bottom:10px; font-size:13px; color:#856404;">
                   <i class="fas fa-exclamation-triangle"></i> Position non détectée automatiquement.
                   <strong>Saisissez votre adresse</strong> et cliquez sur <em>Localiser</em>, ou <strong>cliquez directement sur la carte</strong>.
                 </div>
-
                 <div class="autocomplete-wrapper" style="position:relative; margin-bottom:20px;">
                   <div style="display:flex; gap:8px; align-items:center;">
                     <div class="input-group" style="flex:1; margin-bottom:0;">
@@ -77,7 +73,6 @@
                   <ul class="autocomplete-suggestions" id="adresseSuggestions" style="display:none;"></ul>
                 </div>
                 <div id="positionStatus" style="font-size:12px; color:#718096; margin-bottom:6px; margin-top:-4px;"></div>
-
                 <div class="criterion-group">
                   <label class="criterion-radio">
                     <input type="radio" name="criterion" value="distance" checked>
@@ -88,12 +83,10 @@
                     <i class="fas fa-clock"></i> Temps de trajet (min)
                   </label>
                 </div>
-
                 <div class="input-group">
                   <i class="fas fa-road" id="criterionIcon"></i>
                   <input type="number" id="criterionValue" placeholder="Distance max (km)" min="1" max="300" required />
                 </div>
-
                 <div class="autoroute-option">
                   <label>
                     <input type="checkbox" id="eviterPeage">
@@ -101,10 +94,8 @@
                   </label>
                 </div>
               </div>
-
               <div class="criteria-section">
                 <h3><i class="fas fa-graduation-cap"></i> Caractéristiques de l'école</h3>
-
                 <div class="input-group">
                   <i class="fas fa-school"></i>
                   <select id="type">
@@ -114,7 +105,6 @@
                     <option value="primaire">Primaire (maternelle + élémentaire)</option>
                   </select>
                 </div>
-
                 <div class="input-group">
                   <i class="fas fa-building"></i>
                   <select id="statut">
@@ -123,7 +113,6 @@
                     <option value="Privé">Privé</option>
                   </select>
                 </div>
-
                 <div class="input-group">
                   <i class="fas fa-star"></i>
                   <select id="educationPrioritaire">
@@ -135,14 +124,9 @@
                 </div>
               </div>
             </div>
-
             <div class="buttons-container">
-              <button type="submit" class="search-btn">
-                <i class="fas fa-filter"></i> Lancer la recherche
-              </button>
-              <button type="button" id="resetBtn" class="reset-btn">
-                <i class="fas fa-undo"></i> Réinitialiser
-              </button>
+              <button type="submit" class="search-btn"><i class="fas fa-filter"></i> Lancer la recherche</button>
+              <button type="button" id="resetBtn" class="reset-btn"><i class="fas fa-undo"></i> Réinitialiser</button>
             </div>
           </form>
         </div>
@@ -173,33 +157,27 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Auth Clerk — DOIT être avant script.js -->
+    <!-- Clerk SDK -->
+    <script
+      async
+      crossorigin="anonymous"
+      data-clerk-publishable-key="pk_test_dW5pZmllZC1oYXJlLTkyLmNsZXJrLmFjY291bnRzLmRldiQ"
+      src="https://unpkg.com/@clerk/clerk-js@latest/dist/clerk.browser.js"
+      type="text/javascript"
+    ></script>
+
     <script>
-      const PUBLISHABLE_KEY = "pk_test_dW5pZmllZC1oYXJlLTkyLmNsZXJrLmFjY291bnRzLmRldiQ";
-      let clerkInstance = null;
-
-      async function initApp() {
-        // Charger le SDK Clerk
-        await new Promise((resolve, reject) => {
-          const s = document.createElement("script");
-          s.src = "https://unpkg.com/@clerk/clerk-js@latest/dist/clerk.browser.js";
-          s.onload = resolve;
-          s.onerror = reject;
-          document.head.appendChild(s);
-        });
-
-        const clerk = new window.Clerk(PUBLISHABLE_KEY);
-        await clerk.load();
-        clerkInstance = clerk;
+      window.addEventListener("load", async () => {
+        await window.Clerk.load();
 
         // Pas connecté → login
-        if (!clerk.user) {
+        if (!window.Clerk.user) {
           window.location.href = "/login.html";
           return;
         }
 
-        // Connecté → vérifier accès
-        const token = await clerk.session.getToken();
+        // Vérifier accès payé
+        const token = await window.Clerk.session.getToken();
         const res = await fetch("/api/check-access", {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -210,14 +188,14 @@
           return;
         }
 
-        // Afficher l'email dans le header
-        const email = clerk.user.emailAddresses?.[0]?.emailAddress;
+        // Afficher email dans le header
+        const email = window.Clerk.user.emailAddresses?.[0]?.emailAddress;
         document.getElementById("headerUserEmail").textContent = email;
         document.getElementById("userMenu").style.display = "flex";
 
-        // Exposer apiFetch globalement pour script.js
+        // Exposer apiFetch pour script.js
         window.apiFetch = async (url, options = {}) => {
-          const t = await clerk.session.getToken();
+          const t = await window.Clerk.session.getToken();
           return fetch(url, {
             ...options,
             headers: {
@@ -228,16 +206,14 @@
           });
         };
 
-        // Lancer l'app principale
+        // Lancer l'app
         if (typeof initMainApp === "function") initMainApp();
-      }
+      });
 
       async function handleLogout() {
-        if (clerkInstance) await clerkInstance.signOut();
+        await window.Clerk.signOut();
         window.location.href = "/login.html";
       }
-
-      initApp();
     </script>
 
     <script src="script.js"></script>
