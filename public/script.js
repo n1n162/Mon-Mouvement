@@ -1,3 +1,5 @@
+Auth.requireAccess();
+
 // ===== GLOBALS =====
 let schools = [];
 let map;
