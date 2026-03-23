@@ -6,27 +6,12 @@
   <title>Accès activé – Mon Mouvement</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f5f5f5;
-      display: flex; align-items: center; justify-content: center;
-      min-height: 100vh; padding: 2rem;
-    }
-    .card {
-      background: white; border-radius: 16px; padding: 2.5rem 2rem;
-      max-width: 420px; width: 100%;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08); text-align: center;
-    }
+    body { font-family: -apple-system, sans-serif; background: #f5f5f5; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 2rem; }
+    .card { background: white; border-radius: 16px; padding: 2.5rem 2rem; max-width: 420px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.08); text-align: center; }
     .icon { font-size: 3rem; margin-bottom: 1rem; }
     h1 { font-size: 1.6rem; color: #1a1a1a; margin-bottom: 0.8rem; }
     p { color: #666; font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.5; }
-    .btn {
-      display: block; width: 100%; padding: 1rem;
-      background: #1a1a1a; color: white; border: none;
-      border-radius: 10px; font-size: 1rem; font-weight: 600;
-      cursor: pointer; text-decoration: none; transition: background 0.2s;
-    }
-    .btn:hover { background: #333; }
+    .btn { display: block; width: 100%; padding: 1rem; background: #1a1a1a; color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; text-decoration: none; }
     .error { color: #c62828; }
   </style>
 </head>
@@ -36,31 +21,26 @@
     <h1>Activation en cours…</h1>
     <p>Vérification du paiement, veuillez patienter.</p>
   </div>
-
   <script>
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get("session_id");
 
     async function init() {
       if (!sessionId) { showError("Paramètres manquants."); return; }
-
       try {
         const res = await fetch(`/api/confirm-payment?session_id=${sessionId}`);
         const data = await res.json();
-        if (!res.ok) { showError(data.error || "Erreur lors de l'activation."); return; }
+        if (!res.ok) { showError(data.error || "Erreur activation."); return; }
         showSuccess();
-      } catch (e) {
-        showError("Erreur réseau. Veuillez réessayer.");
-      }
+      } catch (e) { showError("Erreur réseau."); }
     }
 
     function showSuccess() {
       document.getElementById("content").innerHTML = `
         <div class="icon">✅</div>
         <h1>Accès activé !</h1>
-        <p>Votre accès d'un an est maintenant actif.<br/>Bonne utilisation de Mon Mouvement.</p>
-        <a href="/" class="btn">Accéder à l'application →</a>
-      `;
+        <p>Votre accès d'un an est maintenant actif.</p>
+        <a href="/" class="btn">Accéder à l'application →</a>`;
     }
 
     function showError(msg) {
@@ -68,8 +48,7 @@
         <div class="icon">❌</div>
         <h1>Problème d'activation</h1>
         <p class="error">${msg}</p>
-        <a href="/pricing.html" class="btn">Retour</a>
-      `;
+        <a href="/pricing.html" class="btn">Retour</a>`;
     }
 
     init();

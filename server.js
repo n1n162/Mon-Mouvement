@@ -4,71 +4,110 @@ require("dotenv").config();
 
 const app = express();
 app.use(cors());
-
-// ⚠️ Le webhook Stripe DOIT être avant express.json
 app.use("/api/webhook/stripe", express.raw({ type: "application/json" }));
 app.use(express.json());
 app.use(express.static("public"));
 
-// ─────────────────────────────────────────────
-// IMPORTS
-// ─────────────────────────────────────────────
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const Clerk = require("@clerk/clerk-sdk-node");
-
-const clerkClient = Clerk.createClerkClient({
-  secretKey: process.env.CLERK_SECRET_KEY,
-});
+const jwt = require("jsonwebtoken");
+const jwksClient = require("jwks-rsa");
 
 const ACCESS_DURATION_DAYS = 365;
 
 // ─────────────────────────────────────────────
-// MIDDLEWARE : vérification session Clerk
+// Auth0 JWT verification
+// ─────────────────────────────────────────────
+const client = jwksClient({
+  jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
+});
+
+function getKey(header, callback) {
+  client.getSigningKey(header.kid, (err, key) => {
+    if (err) return callback(err);
+    callback(null, key.getPublicKey());
+  });
+}
+
+function verifyAuth0Token(token) {
+  return new Promise((resolve, reject) => {
+    jwt.verify(
+      token,
+      getKey,
+      {
+        audience: process.env.AUTH0_CLIENT_ID,
+        issuer: `https://${process.env.AUTH0_DOMAIN}/`,
+        algorithms: ["RS256"],
+      },
+      (err, decoded) => {
+        if (err) return reject(err);
+        resolve(decoded);
+      }
+    );
+  });
+}
+
+// In-memory store pour les accès (remplacé par un fichier JSON simple)
+const fs = require("fs");
+const ACCESS_FILE = "/tmp/access.json";
+
+function loadAccess() {
+  try {
+    if (fs.existsSync(ACCESS_FILE)) {
+      return JSON.parse(fs.readFileSync(ACCESS_FILE, "utf8"));
+    }
+  } catch (e) {}
+  return {};
+}
+
+function saveAccess(data) {
+  try {
+    fs.writeFileSync(ACCESS_FILE, JSON.stringify(data), "utf8");
+  } catch (e) {}
+}
+
+// ─────────────────────────────────────────────
+// MIDDLEWARE : vérification Auth0 token
 // ─────────────────────────────────────────────
 async function requireAccess(req, res, next) {
-  const sessionToken = req.headers["authorization"]?.split(" ")[1];
-
-  if (!sessionToken) {
-    return res.status(401).json({ error: "Non authentifié" });
-  }
+  const token = req.headers["authorization"]?.split(" ")[1];
+  if (!token) return res.status(401).json({ error: "Non authentifié" });
 
   try {
-    const payload = await clerkClient.verifyToken(sessionToken);
-    const userId = payload.sub;
-    const user = await clerkClient.users.getUser(userId);
-    const accessUntil = user.publicMetadata?.accessUntil;
+    const decoded = await verifyAuth0Token(token);
+    const userId = decoded.sub;
+    const access = loadAccess();
+    const userAccess = access[userId];
 
-    if (!accessUntil || new Date(accessUntil) < new Date()) {
+    if (!userAccess || new Date(userAccess.accessUntil) < new Date()) {
       return res.status(403).json({ error: "Accès expiré ou non payé" });
     }
 
     req.userId = userId;
-    req.user = user;
+    req.decoded = decoded;
     next();
   } catch (err) {
-    console.error("❌ Erreur auth Clerk :", err.message);
     return res.status(401).json({ error: "Token invalide" });
   }
 }
 
 // ─────────────────────────────────────────────
-// CLERK : vérifier le statut d'accès
+// CHECK ACCESS
 // ─────────────────────────────────────────────
 app.get("/api/check-access", async (req, res) => {
-  const sessionToken = req.headers["authorization"]?.split(" ")[1];
-
-  if (!sessionToken) return res.json({ hasAccess: false, reason: "not_authenticated" });
+  const token = req.headers["authorization"]?.split(" ")[1];
+  if (!token) return res.json({ hasAccess: false, reason: "not_authenticated" });
 
   try {
-    const payload = await clerkClient.verifyToken(sessionToken);
-    const user = await clerkClient.users.getUser(payload.sub);
-    const accessUntil = user.publicMetadata?.accessUntil;
+    const decoded = await verifyAuth0Token(token);
+    const userId = decoded.sub;
+    const access = loadAccess();
+    const userAccess = access[userId];
 
-    if (!accessUntil || new Date(accessUntil) < new Date()) {
+    if (!userAccess || new Date(userAccess.accessUntil) < new Date()) {
       return res.json({ hasAccess: false, reason: "not_paid" });
     }
 
-    return res.json({ hasAccess: true, accessUntil });
+    return res.json({ hasAccess: true, accessUntil: userAccess.accessUntil });
   } catch (err) {
     return res.json({ hasAccess: false, reason: "invalid_token" });
   }
@@ -78,16 +117,15 @@ app.get("/api/check-access", async (req, res) => {
 // STRIPE : créer une session de paiement
 // ─────────────────────────────────────────────
 app.get("/api/create-checkout", async (req, res) => {
-  const sessionToken = req.headers["authorization"]?.split(" ")[1];
+  const token = req.query.token;
   let userId = null;
   let userEmail = null;
 
-  if (sessionToken) {
+  if (token) {
     try {
-      const payload = await clerkClient.verifyToken(sessionToken);
-      userId = payload.sub;
-      const user = await clerkClient.users.getUser(userId);
-      userEmail = user.emailAddresses?.[0]?.emailAddress;
+      const decoded = await verifyAuth0Token(token);
+      userId = decoded.sub;
+      userEmail = decoded.email;
     } catch (e) {}
   }
 
@@ -97,20 +135,19 @@ app.get("/api/create-checkout", async (req, res) => {
       line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
       mode: "payment",
       customer_email: userEmail || undefined,
-      metadata: { clerk_user_id: userId || "" },
+      metadata: { auth0_user_id: userId || "" },
       success_url: `${process.env.APP_URL}/merci.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.APP_URL}/pricing.html`,
     });
-
     res.redirect(303, session.url);
   } catch (err) {
-    console.error("❌ Erreur Stripe checkout :", err);
-    res.status(500).json({ error: "Erreur lors de la création du paiement" });
+    console.error("❌ Erreur Stripe :", err);
+    res.status(500).json({ error: "Erreur paiement" });
   }
 });
 
 // ─────────────────────────────────────────────
-// STRIPE : webhook — paiement confirmé
+// STRIPE : webhook
 // ─────────────────────────────────────────────
 app.post("/api/webhook/stripe", async (req, res) => {
   const sig = req.headers["stripe-signature"];
@@ -119,22 +156,21 @@ app.post("/api/webhook/stripe", async (req, res) => {
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    console.error("❌ Webhook signature invalide :", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-    const userId = session.metadata?.clerk_user_id;
+    const userId = session.metadata?.auth0_user_id;
 
     if (userId) {
       const accessUntil = new Date(
         Date.now() + ACCESS_DURATION_DAYS * 24 * 60 * 60 * 1000
       ).toISOString();
 
-      await clerkClient.users.updateUserMetadata(userId, {
-        publicMetadata: { accessUntil },
-      });
+      const access = loadAccess();
+      access[userId] = { accessUntil, email: session.customer_details?.email };
+      saveAccess(access);
 
       console.log(`✅ Accès activé pour ${userId} jusqu'au ${accessUntil}`);
     }
@@ -144,57 +180,58 @@ app.post("/api/webhook/stripe", async (req, res) => {
 });
 
 // ─────────────────────────────────────────────
-// ADMIN : donner un accès gratuit
-// POST /api/admin/grant-access { password, email }
+// STRIPE : confirmer paiement
 // ─────────────────────────────────────────────
-app.post("/api/admin/grant-access", async (req, res) => {
-  const { password, email } = req.body;
-
-  if (!password || password !== process.env.ADMIN_PASSWORD) {
-    return res.status(401).json({ error: "Mot de passe admin incorrect" });
-  }
-
-  if (!email) return res.status(400).json({ error: "Email requis" });
+app.get("/api/confirm-payment", async (req, res) => {
+  const { session_id } = req.query;
+  if (!session_id) return res.status(400).json({ error: "session_id manquant" });
 
   try {
-    const users = await clerkClient.users.getUserList({ emailAddress: [email] });
-
-    if (!users.data || users.data.length === 0) {
-      return res.status(404).json({
-        error: `Aucun compte trouvé pour ${email}. L'utilisateur doit d'abord se connecter sur l'app.`,
-      });
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+    if (session.payment_status !== "paid") {
+      return res.status(402).json({ error: "Paiement non confirmé" });
     }
-
-    const user = users.data[0];
-    const accessUntil = new Date(
-      Date.now() + ACCESS_DURATION_DAYS * 24 * 60 * 60 * 1000
-    ).toISOString();
-
-    await clerkClient.users.updateUserMetadata(user.id, {
-      publicMetadata: { accessUntil },
-    });
-
-    res.json({ success: true, email, accessUntil });
+    res.json({ success: true });
   } catch (err) {
-    console.error("❌ Erreur admin :", err);
-    res.status(500).json({ error: "Erreur serveur", details: err.message });
+    res.status(500).json({ error: "Erreur serveur" });
   }
 });
 
 // ─────────────────────────────────────────────
-// ORS : Matrice de distance (protégée)
+// ADMIN : accès gratuit
+// POST /api/admin/grant-access { password, auth0_user_id, email }
+// ─────────────────────────────────────────────
+app.post("/api/admin/grant-access", (req, res) => {
+  const { password, auth0_user_id, email } = req.body;
+
+  if (!password || password !== process.env.ADMIN_PASSWORD) {
+    return res.status(401).json({ error: "Mot de passe admin incorrect" });
+  }
+  if (!auth0_user_id) return res.status(400).json({ error: "auth0_user_id requis" });
+
+  const accessUntil = new Date(
+    Date.now() + ACCESS_DURATION_DAYS * 24 * 60 * 60 * 1000
+  ).toISOString();
+
+  const access = loadAccess();
+  access[auth0_user_id] = { accessUntil, email: email || "" };
+  saveAccess(access);
+
+  res.json({ success: true, auth0_user_id, accessUntil });
+});
+
+// ─────────────────────────────────────────────
+// ORS (protégées)
 // ─────────────────────────────────────────────
 app.post("/api/matrix/ors", requireAccess, async (req, res) => {
   const { coordinates, avoid_highways } = req.body;
   if (!coordinates || !Array.isArray(coordinates) || coordinates.length < 2) {
     return res.status(400).json({ error: "Requête incomplète" });
   }
-  const source = coordinates[0];
-  const destinations = coordinates.slice(1);
   const requestBody = {
-    locations: [source, ...destinations],
+    locations: coordinates,
     sources: [0],
-    destinations: destinations.map((_, i) => i + 1),
+    destinations: coordinates.slice(1).map((_, i) => i + 1),
     metrics: ["distance", "duration"],
   };
   if (avoid_highways) requestBody.options = { avoid_features: ["tollways"] };
@@ -205,22 +242,17 @@ app.post("/api/matrix/ors", requireAccess, async (req, res) => {
       headers: { Authorization: process.env.ORS_API_KEY, "Content-Type": "application/json" },
       body: JSON.stringify(requestBody),
     });
-    if (!orsRes.ok) throw new Error(`ORS Matrix ${orsRes.status}: ${await orsRes.text()}`);
+    if (!orsRes.ok) throw new Error(await orsRes.text());
     res.json(await orsRes.json());
   } catch (err) {
-    console.error("❌ Erreur Matrix :", err);
-    res.status(500).json({ error: "Erreur serveur ORS Matrix", details: err.message });
+    res.status(500).json({ error: "Erreur ORS Matrix", details: err.message });
   }
 });
 
-// ─────────────────────────────────────────────
-// ORS : Itinéraire complet (protégé)
-// ─────────────────────────────────────────────
 app.post("/api/route/ors", requireAccess, async (req, res) => {
   const { source, destination, avoid_highways } = req.body;
-  if (!source || !destination) {
-    return res.status(400).json({ error: "Source et destination requises" });
-  }
+  if (!source || !destination) return res.status(400).json({ error: "Source et destination requises" });
+
   const requestBody = { coordinates: [source, destination] };
   if (avoid_highways) requestBody.options = { avoid_features: ["tollways"] };
 
@@ -230,18 +262,15 @@ app.post("/api/route/ors", requireAccess, async (req, res) => {
       headers: { Authorization: process.env.ORS_API_KEY, "Content-Type": "application/json" },
       body: JSON.stringify(requestBody),
     });
-    if (!orsRes.ok) throw new Error(`ORS Directions ${orsRes.status}: ${await orsRes.text()}`);
+    if (!orsRes.ok) throw new Error(await orsRes.text());
     res.json(await orsRes.json());
   } catch (err) {
-    console.error("❌ Erreur Route :", err);
-    res.status(500).json({ error: "Erreur serveur ORS Directions", details: err.message });
+    res.status(500).json({ error: "Erreur ORS Directions", details: err.message });
   }
 });
 
 const PORT = process.env.PORT || 5000;
 if (process.env.NODE_ENV !== "production") {
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`🚀 Serveur lancé sur http://localhost:${PORT}`);
-  });
+  app.listen(PORT, "0.0.0.0", () => console.log(`🚀 Serveur sur http://localhost:${PORT}`));
 }
 module.exports = app;

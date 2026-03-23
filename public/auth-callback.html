@@ -4,36 +4,59 @@
   <meta charset="UTF-8" />
   <title>Connexion en cours…</title>
   <style>
-    body { font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f5f5f5; color: #666; }
+    body { font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f5f5f5; color: #666; text-align: center; }
+    .card { background: white; border-radius: 16px; padding: 2rem; max-width: 360px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
   </style>
 </head>
 <body>
-  <p>⏳ Vérification de votre accès…</p>
+  <div class="card">
+    <p style="font-size:2rem; margin-bottom:1rem;">⏳</p>
+    <p>Vérification de votre accès…</p>
+  </div>
 
-  <script
-    async
-    crossorigin="anonymous"
-    data-clerk-publishable-key="pk_test_dW5pZmllZC1oYXJlLTkyLmNsZXJrLmFjY291bnRzLmRldiQ"
-    src="https://unpkg.com/@clerk/clerk-js@latest/dist/clerk.browser.js"
-    type="text/javascript"
-  ></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/auth0-js@9.23.0/build/auth0.min.js"></script>
   <script>
-    window.addEventListener("load", async () => {
-      await window.Clerk.load();
+    const auth0Client = new auth0.WebAuth({
+      domain: 'dev-if8zn02ahslylqpv.us.auth0.com',
+      clientID: 'bDmc7J7wbBiey5TgVNSOOmTI2m3CGyiU',
+      redirectUri: window.location.origin + '/auth-callback.html',
+      responseType: 'token id_token',
+      scope: 'openid profile email'
+    });
 
-      if (!window.Clerk.user) {
-        window.location.href = "/login.html";
+    auth0Client.parseHash(async (err, result) => {
+      if (err || !result) {
+        // Pas de hash → vérifier token existant en localStorage
+        const token = localStorage.getItem('auth0_token');
+        const expiry = localStorage.getItem('auth0_expiry');
+        if (token && expiry && Date.now() < parseInt(expiry)) {
+          await checkAccess(token);
+        } else {
+          window.location.href = '/login.html';
+        }
         return;
       }
 
-      const token = await window.Clerk.session.getToken();
-      const res = await fetch("/api/check-access", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      window.location.href = data.hasAccess ? "/" : "/pricing.html";
+      // Stocker le token
+      const expiryTime = Date.now() + result.expiresIn * 1000;
+      localStorage.setItem('auth0_token', result.accessToken);
+      localStorage.setItem('auth0_id_token', result.idToken);
+      localStorage.setItem('auth0_expiry', expiryTime.toString());
+
+      await checkAccess(result.accessToken);
     });
+
+    async function checkAccess(token) {
+      try {
+        const res = await fetch('/api/check-access', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        window.location.href = data.hasAccess ? '/' : '/pricing.html';
+      } catch (e) {
+        window.location.href = '/pricing.html';
+      }
+    }
   </script>
 </body>
 </html>
