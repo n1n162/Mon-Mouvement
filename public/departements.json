@@ -49,7 +49,7 @@
   { "code": "47", "nom": "Lot-et-Garonne", "actif": false },
   { "code": "48", "nom": "Lozère", "actif": false },
   { "code": "49", "nom": "Maine-et-Loire", "actif": false },
-  { "code": "50", "nom": "Manche", "actif": false },
+  { "code": "50", "nom": "Manche", "actif": true },
   { "code": "51", "nom": "Marne", "actif": false },
   { "code": "52", "nom": "Haute-Marne", "actif": false },
   { "code": "53", "nom": "Mayenne", "actif": false },
