@@ -9,40 +9,24 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #f5f5f5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 2rem;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 2rem;
     }
     .card {
-      background: white;
-      border-radius: 16px;
-      padding: 2.5rem 2rem;
-      max-width: 420px;
-      width: 100%;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-      text-align: center;
+      background: white; border-radius: 16px; padding: 2.5rem 2rem;
+      max-width: 420px; width: 100%;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08); text-align: center;
     }
     .icon { font-size: 3rem; margin-bottom: 1rem; }
     h1 { font-size: 1.6rem; color: #1a1a1a; margin-bottom: 0.8rem; }
     p { color: #666; font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.5; }
     .btn {
-      display: block;
-      width: 100%;
-      padding: 1rem;
-      background: #1a1a1a;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      transition: background 0.2s;
+      display: block; width: 100%; padding: 1rem;
+      background: #1a1a1a; color: white; border: none;
+      border-radius: 10px; font-size: 1rem; font-weight: 600;
+      cursor: pointer; text-decoration: none; transition: background 0.2s;
     }
     .btn:hover { background: #333; }
-    .loading { color: #888; font-size: 0.9rem; }
     .error { color: #c62828; }
   </style>
 </head>
@@ -50,54 +34,24 @@
   <div class="card" id="content">
     <div class="icon">⏳</div>
     <h1>Activation en cours…</h1>
-    <p class="loading">Vérification du paiement, veuillez patienter.</p>
+    <p>Vérification du paiement, veuillez patienter.</p>
   </div>
 
   <script>
     const params = new URLSearchParams(window.location.search);
     const sessionId = params.get("session_id");
-    const directToken = params.get("token"); // accès gratuit via admin
 
     async function init() {
-      const content = document.getElementById("content");
+      if (!sessionId) { showError("Paramètres manquants."); return; }
 
-      // Accès gratuit : token passé directement dans l'URL
-      if (directToken) {
-        try {
-          const payload = JSON.parse(atob(directToken.split(".")[1]));
-          if (payload.exp * 1000 < Date.now()) {
-            showError("Ce lien d'accès est expiré.");
-            return;
-          }
-          localStorage.setItem("access_token", directToken);
-          showSuccess();
-          return;
-        } catch (e) {
-          showError("Lien d'accès invalide.");
-          return;
-        }
+      try {
+        const res = await fetch(`/api/confirm-payment?session_id=${sessionId}`);
+        const data = await res.json();
+        if (!res.ok) { showError(data.error || "Erreur lors de l'activation."); return; }
+        showSuccess();
+      } catch (e) {
+        showError("Erreur réseau. Veuillez réessayer.");
       }
-
-      // Accès payant : récupérer le token depuis Stripe
-      if (sessionId) {
-        try {
-          const res = await fetch(`/api/get-token?session_id=${sessionId}`);
-          const data = await res.json();
-
-          if (!res.ok) {
-            showError(data.error || "Erreur lors de l'activation.");
-            return;
-          }
-
-          localStorage.setItem("access_token", data.token);
-          showSuccess();
-        } catch (e) {
-          showError("Erreur réseau. Veuillez réessayer.");
-        }
-        return;
-      }
-
-      showError("Paramètres manquants.");
     }
 
     function showSuccess() {

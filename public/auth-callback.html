@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Connexion en cours…</title>
+  <style>
+    body {
+      font-family: -apple-system, sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; background: #f5f5f5;
+      color: #666; font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <p>⏳ Vérification de votre accès…</p>
+
+  <script>
+    const PUBLISHABLE_KEY = "pk_test_dW5pZmllZC1oYXJlLTkyLmNsZXJrLmFjY291bnRzLmRldiQ";
+
+    async function check() {
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js";
+      document.head.appendChild(script);
+
+      script.onload = async () => {
+        const clerk = new window.Clerk(PUBLISHABLE_KEY);
+        await clerk.load();
+
+        if (!clerk.user) {
+          window.location.href = "/login.html";
+          return;
+        }
+
+        const token = await clerk.session.getToken();
+        const res = await fetch("/api/check-access", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        window.location.href = data.hasAccess ? "/" : "/pricing.html";
+      };
+    }
+
+    check();
+  </script>
+</body>
+</html>

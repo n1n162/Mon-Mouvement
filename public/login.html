@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connexion – Mon Mouvement</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+    h1 { font-size: 1.6rem; color: #1a1a1a; margin-bottom: 0.5rem; }
+    p { color: #666; font-size: 0.95rem; margin-bottom: 2rem; }
+    #clerk-sign-in { min-height: 300px; }
+    .loading { color: #888; font-size: 0.9rem; padding: 2rem 0; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🏫 Mon Mouvement</h1>
+    <p>Connectez-vous pour accéder à l'application</p>
+    <div id="clerk-sign-in">
+      <p class="loading">Chargement...</p>
+    </div>
+  </div>
+
+  <script>
+    const PUBLISHABLE_KEY = "pk_test_dW5pZmllZC1oYXJlLTkyLmNsZXJrLmFjY291bnRzLmRldiQ";
+
+    async function initClerk() {
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js";
+      document.head.appendChild(script);
+
+      script.onload = async () => {
+        const clerk = new window.Clerk(PUBLISHABLE_KEY);
+        await clerk.load();
+
+        // Si déjà connecté, vérifier l'accès et rediriger
+        if (clerk.user) {
+          const token = await clerk.session.getToken();
+          const res = await fetch("/api/check-access", {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const data = await res.json();
+          window.location.href = data.hasAccess ? "/" : "/pricing.html";
+          return;
+        }
+
+        // Sinon afficher le formulaire de connexion Clerk
+        clerk.mountSignIn(document.getElementById("clerk-sign-in"), {
+          afterSignInUrl: "/auth-callback.html",
+          afterSignUpUrl: "/auth-callback.html",
+        });
+      };
+    }
+
+    initClerk();
+  </script>
+</body>
+</html>

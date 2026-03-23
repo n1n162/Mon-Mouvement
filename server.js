@@ -4,61 +4,100 @@ require("dotenv").config();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
 
-// ⚠️ Le webhook Stripe DOIT être avant express.static et express.json pour certaines versions
-// On utilise express.raw uniquement pour la route webhook
+// ⚠️ Le webhook Stripe DOIT être avant express.json
 app.use("/api/webhook/stripe", express.raw({ type: "application/json" }));
-
+app.use(express.json());
 app.use(express.static("public"));
 
 // ─────────────────────────────────────────────
 // IMPORTS
 // ─────────────────────────────────────────────
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const jwt = require("jsonwebtoken");
+const Clerk = require("@clerk/clerk-sdk-node");
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const ACCESS_DURATION_DAYS = 365; // 1 an
+const clerkClient = Clerk.createClerkClient({
+  secretKey: process.env.CLERK_SECRET_KEY,
+});
+
+const ACCESS_DURATION_DAYS = 365;
 
 // ─────────────────────────────────────────────
-// MIDDLEWARE : vérification du token JWT
+// MIDDLEWARE : vérification session Clerk
 // ─────────────────────────────────────────────
-function requireAccess(req, res, next) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1]; // Bearer <token>
+async function requireAccess(req, res, next) {
+  const sessionToken = req.headers["authorization"]?.split(" ")[1];
 
-  if (!token) {
-    return res.status(401).json({ error: "Accès refusé : token manquant" });
+  if (!sessionToken) {
+    return res.status(401).json({ error: "Non authentifié" });
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    const now = Math.floor(Date.now() / 1000);
-    if (decoded.exp && decoded.exp < now) {
-      return res.status(401).json({ error: "Accès expiré" });
+    const payload = await clerkClient.verifyToken(sessionToken);
+    const userId = payload.sub;
+    const user = await clerkClient.users.getUser(userId);
+    const accessUntil = user.publicMetadata?.accessUntil;
+
+    if (!accessUntil || new Date(accessUntil) < new Date()) {
+      return res.status(403).json({ error: "Accès expiré ou non payé" });
     }
-    req.user = decoded;
+
+    req.userId = userId;
+    req.user = user;
     next();
   } catch (err) {
+    console.error("❌ Erreur auth Clerk :", err.message);
     return res.status(401).json({ error: "Token invalide" });
   }
 }
 
 // ─────────────────────────────────────────────
+// CLERK : vérifier le statut d'accès
+// ─────────────────────────────────────────────
+app.get("/api/check-access", async (req, res) => {
+  const sessionToken = req.headers["authorization"]?.split(" ")[1];
+
+  if (!sessionToken) return res.json({ hasAccess: false, reason: "not_authenticated" });
+
+  try {
+    const payload = await clerkClient.verifyToken(sessionToken);
+    const user = await clerkClient.users.getUser(payload.sub);
+    const accessUntil = user.publicMetadata?.accessUntil;
+
+    if (!accessUntil || new Date(accessUntil) < new Date()) {
+      return res.json({ hasAccess: false, reason: "not_paid" });
+    }
+
+    return res.json({ hasAccess: true, accessUntil });
+  } catch (err) {
+    return res.json({ hasAccess: false, reason: "invalid_token" });
+  }
+});
+
+// ─────────────────────────────────────────────
 // STRIPE : créer une session de paiement
 // ─────────────────────────────────────────────
 app.get("/api/create-checkout", async (req, res) => {
+  const sessionToken = req.headers["authorization"]?.split(" ")[1];
+  let userId = null;
+  let userEmail = null;
+
+  if (sessionToken) {
+    try {
+      const payload = await clerkClient.verifyToken(sessionToken);
+      userId = payload.sub;
+      const user = await clerkClient.users.getUser(userId);
+      userEmail = user.emailAddresses?.[0]?.emailAddress;
+    } catch (e) {}
+  }
+
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
-      line_items: [
-        {
-          price: process.env.STRIPE_PRICE_ID,
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
       mode: "payment",
+      customer_email: userEmail || undefined,
+      metadata: { clerk_user_id: userId || "" },
       success_url: `${process.env.APP_URL}/merci.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.APP_URL}/pricing.html`,
     });
@@ -75,8 +114,8 @@ app.get("/api/create-checkout", async (req, res) => {
 // ─────────────────────────────────────────────
 app.post("/api/webhook/stripe", async (req, res) => {
   const sig = req.headers["stripe-signature"];
-
   let event;
+
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
@@ -86,89 +125,60 @@ app.post("/api/webhook/stripe", async (req, res) => {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-    const email = session.customer_details?.email || "inconnu";
+    const userId = session.metadata?.clerk_user_id;
 
-    // Générer un token JWT valide 1 an
-    const token = jwt.sign(
-      { email, source: "stripe", session_id: session.id },
-      JWT_SECRET,
-      { expiresIn: `${ACCESS_DURATION_DAYS}d` }
-    );
+    if (userId) {
+      const accessUntil = new Date(
+        Date.now() + ACCESS_DURATION_DAYS * 24 * 60 * 60 * 1000
+      ).toISOString();
 
-    console.log(`✅ Paiement reçu pour ${email} — token généré`);
+      await clerkClient.users.updateUserMetadata(userId, {
+        publicMetadata: { accessUntil },
+      });
 
-    // Stripe ne peut pas recevoir le token directement,
-    // on le stocke dans les métadonnées de la session pour que /api/get-token puisse le récupérer
-    await stripe.checkout.sessions.update(session.id, {
-      metadata: { access_token: token },
-    });
+      console.log(`✅ Accès activé pour ${userId} jusqu'au ${accessUntil}`);
+    }
   }
 
   res.json({ received: true });
 });
 
 // ─────────────────────────────────────────────
-// STRIPE : récupérer le token après paiement
-// Appelé depuis merci.html avec ?session_id=...
+// ADMIN : donner un accès gratuit
+// POST /api/admin/grant-access { password, email }
 // ─────────────────────────────────────────────
-app.get("/api/get-token", async (req, res) => {
-  const { session_id } = req.query;
-
-  if (!session_id) {
-    return res.status(400).json({ error: "session_id manquant" });
-  }
-
-  try {
-    const session = await stripe.checkout.sessions.retrieve(session_id);
-
-    if (session.payment_status !== "paid") {
-      return res.status(402).json({ error: "Paiement non confirmé" });
-    }
-
-    const token = session.metadata?.access_token;
-    if (!token) {
-      return res.status(404).json({ error: "Token non trouvé" });
-    }
-
-    res.json({ token });
-  } catch (err) {
-    console.error("❌ Erreur get-token :", err);
-    res.status(500).json({ error: "Erreur serveur" });
-  }
-});
-
-// ─────────────────────────────────────────────
-// ADMIN : générer un token gratuit
-// POST /api/admin/generate-token
-// Body: { password: "...", email: "...", label: "..." }
-// ─────────────────────────────────────────────
-app.post("/api/admin/generate-token", (req, res) => {
-  const { password, email, label } = req.body;
+app.post("/api/admin/grant-access", async (req, res) => {
+  const { password, email } = req.body;
 
   if (!password || password !== process.env.ADMIN_PASSWORD) {
     return res.status(401).json({ error: "Mot de passe admin incorrect" });
   }
 
-  if (!email) {
-    return res.status(400).json({ error: "Email requis" });
+  if (!email) return res.status(400).json({ error: "Email requis" });
+
+  try {
+    const users = await clerkClient.users.getUserList({ emailAddress: [email] });
+
+    if (!users.data || users.data.length === 0) {
+      return res.status(404).json({
+        error: `Aucun compte trouvé pour ${email}. L'utilisateur doit d'abord se connecter sur l'app.`,
+      });
+    }
+
+    const user = users.data[0];
+    const accessUntil = new Date(
+      Date.now() + ACCESS_DURATION_DAYS * 24 * 60 * 60 * 1000
+    ).toISOString();
+
+    await clerkClient.users.updateUserMetadata(user.id, {
+      publicMetadata: { accessUntil },
+    });
+
+    res.json({ success: true, email, accessUntil });
+  } catch (err) {
+    console.error("❌ Erreur admin :", err);
+    res.status(500).json({ error: "Erreur serveur", details: err.message });
   }
-
-  const token = jwt.sign(
-    { email, source: "admin", label: label || "accès gratuit" },
-    JWT_SECRET,
-    { expiresIn: `${ACCESS_DURATION_DAYS}d` }
-  );
-
-  const accessUrl = `${process.env.APP_URL}/merci.html?token=${token}`;
-
-  console.log(`🎁 Accès gratuit généré pour ${email}`);
-
-  res.json({
-    token,
-    access_url: accessUrl,
-    expires_in: `${ACCESS_DURATION_DAYS} jours`,
-    email,
-  });
 });
 
 // ─────────────────────────────────────────────
@@ -187,24 +197,16 @@ app.post("/api/matrix/ors", requireAccess, async (req, res) => {
     destinations: destinations.map((_, i) => i + 1),
     metrics: ["distance", "duration"],
   };
-  if (avoid_highways) {
-    requestBody.options = { avoid_features: ["tollways"] };
-  }
+  if (avoid_highways) requestBody.options = { avoid_features: ["tollways"] };
+
   try {
     const orsRes = await fetch("https://api.openrouteservice.org/v2/matrix/driving-car", {
       method: "POST",
-      headers: {
-        Authorization: process.env.ORS_API_KEY,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: process.env.ORS_API_KEY, "Content-Type": "application/json" },
       body: JSON.stringify(requestBody),
     });
-    if (!orsRes.ok) {
-      const errorText = await orsRes.text();
-      throw new Error(`Erreur ORS Matrix : ${orsRes.status} - ${errorText}`);
-    }
-    const data = await orsRes.json();
-    res.json(data);
+    if (!orsRes.ok) throw new Error(`ORS Matrix ${orsRes.status}: ${await orsRes.text()}`);
+    res.json(await orsRes.json());
   } catch (err) {
     console.error("❌ Erreur Matrix :", err);
     res.status(500).json({ error: "Erreur serveur ORS Matrix", details: err.message });
@@ -220,24 +222,16 @@ app.post("/api/route/ors", requireAccess, async (req, res) => {
     return res.status(400).json({ error: "Source et destination requises" });
   }
   const requestBody = { coordinates: [source, destination] };
-  if (avoid_highways) {
-    requestBody.options = { avoid_features: ["tollways"] };
-  }
+  if (avoid_highways) requestBody.options = { avoid_features: ["tollways"] };
+
   try {
     const orsRes = await fetch("https://api.openrouteservice.org/v2/directions/driving-car", {
       method: "POST",
-      headers: {
-        Authorization: process.env.ORS_API_KEY,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: process.env.ORS_API_KEY, "Content-Type": "application/json" },
       body: JSON.stringify(requestBody),
     });
-    if (!orsRes.ok) {
-      const errorText = await orsRes.text();
-      throw new Error(`Erreur ORS Directions : ${orsRes.status} - ${errorText}`);
-    }
-    const data = await orsRes.json();
-    res.json(data);
+    if (!orsRes.ok) throw new Error(`ORS Directions ${orsRes.status}: ${await orsRes.text()}`);
+    res.json(await orsRes.json());
   } catch (err) {
     console.error("❌ Erreur Route :", err);
     res.status(500).json({ error: "Erreur serveur ORS Directions", details: err.message });

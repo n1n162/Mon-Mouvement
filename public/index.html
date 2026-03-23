@@ -13,6 +13,13 @@
     <header>
       <div class="container">
         <h1><i class="fas fa-school"></i> Mon mouvement</h1>
+        <!-- Bouton déconnexion affiché une fois connecté -->
+        <div id="userMenu" style="display:none; font-size:13px; color:white; display:flex; align-items:center; gap:10px;">
+          <span id="headerUserEmail"></span>
+          <button onclick="handleLogout()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px;">
+            Déconnexion
+          </button>
+        </div>
       </div>
     </header>
 
@@ -165,7 +172,74 @@
     </footer>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="/auth.js"></script>
+
+    <!-- Auth Clerk — DOIT être avant script.js -->
+    <script>
+      const PUBLISHABLE_KEY = "pk_test_dW5pZmllZC1oYXJlLTkyLmNsZXJrLmFjY291bnRzLmRldiQ";
+      let clerkInstance = null;
+
+      async function initApp() {
+        // Charger le SDK Clerk
+        await new Promise((resolve, reject) => {
+          const s = document.createElement("script");
+          s.src = "https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js";
+          s.onload = resolve;
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+
+        const clerk = new window.Clerk(PUBLISHABLE_KEY);
+        await clerk.load();
+        clerkInstance = clerk;
+
+        // Pas connecté → login
+        if (!clerk.user) {
+          window.location.href = "/login.html";
+          return;
+        }
+
+        // Connecté → vérifier accès
+        const token = await clerk.session.getToken();
+        const res = await fetch("/api/check-access", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+
+        if (!data.hasAccess) {
+          window.location.href = "/pricing.html";
+          return;
+        }
+
+        // Afficher l'email dans le header
+        const email = clerk.user.emailAddresses?.[0]?.emailAddress;
+        document.getElementById("headerUserEmail").textContent = email;
+        document.getElementById("userMenu").style.display = "flex";
+
+        // Exposer apiFetch globalement pour script.js
+        window.apiFetch = async (url, options = {}) => {
+          const t = await clerk.session.getToken();
+          return fetch(url, {
+            ...options,
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${t}`,
+              ...(options.headers || {}),
+            },
+          });
+        };
+
+        // Lancer l'app principale
+        if (typeof initMainApp === "function") initMainApp();
+      }
+
+      async function handleLogout() {
+        if (clerkInstance) await clerkInstance.signOut();
+        window.location.href = "/login.html";
+      }
+
+      initApp();
+    </script>
+
     <script src="script.js"></script>
     <script defer src="/_vercel/insights/script.js"></script>
   </body>

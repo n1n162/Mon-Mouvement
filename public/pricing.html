@@ -9,117 +9,41 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #f5f5f5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 2rem;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 2rem;
     }
     .card {
-      background: white;
-      border-radius: 16px;
-      padding: 2.5rem 2rem;
-      max-width: 420px;
-      width: 100%;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-      text-align: center;
+      background: white; border-radius: 16px; padding: 2.5rem 2rem;
+      max-width: 420px; width: 100%;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08); text-align: center;
     }
     .badge {
-      display: inline-block;
-      background: #e8f5e9;
-      color: #2e7d32;
-      font-size: 0.8rem;
-      font-weight: 600;
-      padding: 0.3rem 0.8rem;
-      border-radius: 999px;
-      margin-bottom: 1.2rem;
+      display: inline-block; background: #e8f5e9; color: #2e7d32;
+      font-size: 0.8rem; font-weight: 600; padding: 0.3rem 0.8rem;
+      border-radius: 999px; margin-bottom: 1.2rem;
     }
     h1 { font-size: 1.6rem; color: #1a1a1a; margin-bottom: 0.5rem; }
     .subtitle { color: #666; font-size: 0.95rem; margin-bottom: 2rem; }
-    .price {
-      font-size: 3rem;
-      font-weight: 700;
-      color: #1a1a1a;
-      line-height: 1;
-      margin-bottom: 0.3rem;
-    }
+    .price { font-size: 3rem; font-weight: 700; color: #1a1a1a; line-height: 1; margin-bottom: 0.3rem; }
     .price span { font-size: 1.2rem; font-weight: 400; color: #888; }
     .duration { color: #888; font-size: 0.9rem; margin-bottom: 2rem; }
-    .features {
-      list-style: none;
-      text-align: left;
-      margin-bottom: 2rem;
-    }
+    .features { list-style: none; text-align: left; margin-bottom: 2rem; }
     .features li {
-      padding: 0.5rem 0;
-      color: #444;
-      font-size: 0.95rem;
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
+      padding: 0.5rem 0; color: #444; font-size: 0.95rem;
+      display: flex; align-items: center; gap: 0.6rem;
     }
-    .features li::before {
-      content: "✓";
-      color: #2e7d32;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
+    .features li::before { content: "✓"; color: #2e7d32; font-weight: 700; flex-shrink: 0; }
     .btn {
-      display: block;
-      width: 100%;
-      padding: 1rem;
-      background: #1a1a1a;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      transition: background 0.2s;
+      display: block; width: 100%; padding: 1rem;
+      background: #1a1a1a; color: white; border: none;
+      border-radius: 10px; font-size: 1rem; font-weight: 600;
+      cursor: pointer; text-decoration: none; transition: background 0.2s;
     }
     .btn:hover { background: #333; }
-    .secure {
-      margin-top: 1rem;
-      color: #aaa;
-      font-size: 0.8rem;
-    }
-
-    /* Formulaire token */
-    .divider {
-      margin: 1.5rem 0;
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-      color: #bbb;
-      font-size: 0.85rem;
-    }
-    .divider::before, .divider::after {
-      content: "";
-      flex: 1;
-      height: 1px;
-      background: #e0e0e0;
-    }
-    .token-form { display: flex; gap: 0.5rem; }
-    .token-form input {
-      flex: 1;
-      padding: 0.7rem 1rem;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      outline: none;
-    }
-    .token-form input:focus { border-color: #1a1a1a; }
-    .token-form button {
-      padding: 0.7rem 1rem;
-      background: #1a1a1a;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
-    .error { color: #c62828; font-size: 0.85rem; margin-top: 0.5rem; }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+    .secure { margin-top: 1rem; color: #aaa; font-size: 0.8rem; }
+    .user-info { background: #f0f4ff; border-radius: 8px; padding: 0.8rem 1rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: #444; }
+    .logout-link { color: #888; font-size: 0.8rem; cursor: pointer; text-decoration: underline; margin-top: 0.5rem; display: block; }
   </style>
 </head>
 <body>
@@ -138,53 +62,70 @@
       <li>Mises à jour incluses</li>
     </ul>
 
-    <a href="/api/create-checkout" class="btn">Acheter l'accès →</a>
-    <p class="secure">🔒 Paiement sécurisé par Stripe</p>
-
-    <div class="divider">ou</div>
-
-    <p style="color:#666; font-size:0.9rem; margin-bottom:0.8rem;">Vous avez déjà un code d'accès ?</p>
-    <div class="token-form">
-      <input type="text" id="tokenInput" placeholder="Coller votre token ici" />
-      <button onclick="activateToken()">Activer</button>
+    <div id="userInfo" style="display:none;" class="user-info">
+      Connecté en tant que <strong id="userEmail"></strong>
+      <span class="logout-link" onclick="handleLogout()">Se déconnecter</span>
     </div>
-    <p class="error" id="tokenError"></p>
+
+    <button id="payBtn" class="btn" onclick="handlePay()">Acheter l'accès →</button>
+    <p class="secure">🔒 Paiement sécurisé par Stripe</p>
   </div>
 
   <script>
-    // Si déjà connecté, rediriger vers l'app
-    const existing = localStorage.getItem("access_token");
-    if (existing) {
-      try {
-        const payload = JSON.parse(atob(existing.split(".")[1]));
-        if (payload.exp * 1000 > Date.now()) {
-          window.location.href = "/";
+    const PUBLISHABLE_KEY = "pk_test_dW5pZmllZC1oYXJlLTkyLmNsZXJrLmFjY291bnRzLmRldiQ";
+    let clerkInstance = null;
+
+    async function initClerk() {
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js";
+      document.head.appendChild(script);
+
+      script.onload = async () => {
+        const clerk = new window.Clerk(PUBLISHABLE_KEY);
+        await clerk.load();
+        clerkInstance = clerk;
+
+        if (clerk.user) {
+          const email = clerk.user.emailAddresses?.[0]?.emailAddress;
+          document.getElementById("userEmail").textContent = email;
+          document.getElementById("userInfo").style.display = "block";
+
+          // Vérifier si déjà payé
+          const token = await clerk.session.getToken();
+          const res = await fetch("/api/check-access", {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const data = await res.json();
+          if (data.hasAccess) {
+            window.location.href = "/";
+          }
+        } else {
+          // Pas connecté : rediriger vers login d'abord
+          document.getElementById("payBtn").textContent = "Se connecter pour acheter →";
         }
-      } catch (e) {}
+      };
     }
 
-    function activateToken() {
-      const token = document.getElementById("tokenInput").value.trim();
-      const errEl = document.getElementById("tokenError");
-      errEl.textContent = "";
-
-      if (!token) {
-        errEl.textContent = "Veuillez coller votre token.";
+    async function handlePay() {
+      if (!clerkInstance || !clerkInstance.user) {
+        window.location.href = "/login.html";
         return;
       }
 
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        if (payload.exp * 1000 < Date.now()) {
-          errEl.textContent = "Ce token est expiré.";
-          return;
-        }
-        localStorage.setItem("access_token", token);
-        window.location.href = "/";
-      } catch (e) {
-        errEl.textContent = "Token invalide.";
-      }
+      const btn = document.getElementById("payBtn");
+      btn.disabled = true;
+      btn.textContent = "Redirection...";
+
+      const token = await clerkInstance.session.getToken();
+      window.location.href = `/api/create-checkout?token=${token}`;
     }
+
+    async function handleLogout() {
+      if (clerkInstance) await clerkInstance.signOut();
+      window.location.href = "/login.html";
+    }
+
+    initClerk();
   </script>
 </body>
 </html>
