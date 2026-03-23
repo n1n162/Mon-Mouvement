@@ -2,7 +2,7 @@
   { "code": "01", "nom": "Ain", "actif": true },
   { "code": "02", "nom": "Aisne", "actif": true },
   { "code": "02A", "nom": "Corse-du-Sud", "actif": true },
-  { "code": "02BA", "nom": "Haute-Corse", "actif": true },
+  { "code": "02B", "nom": "Haute-Corse", "actif": true },
   { "code": "03", "nom": "Allier", "actif": true },
   { "code": "04", "nom": "Alpes-de-Haute-Provence", "actif": true },
   { "code": "05", "nom": "Hautes-Alpes", "actif": true },
