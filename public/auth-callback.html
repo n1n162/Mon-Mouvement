@@ -20,7 +20,7 @@
 
     async function check() {
       const script = document.createElement("script");
-      script.src = "https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js";
+      script.src = "https://unpkg.com/@clerk/clerk-js@latest/dist/clerk.browser.js";
       document.head.appendChild(script);
 
       script.onload = async () => {
