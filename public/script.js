@@ -20,6 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
   setupCriterionToggle();
 });
 
+// --- Au début du fichier, détecte le mode ---
+const isDemoMode = document.body.classList.contains('demo-mode');
+
 // ===== CRITERION TOGGLE =====
 function setupCriterionToggle() {
   document.querySelectorAll('input[name="criterion"]').forEach(radio => {
@@ -287,11 +290,18 @@ function displaySchoolMarkers(schoolsToShow, filtered) {
     }
   });
 
+  // --- AJOUT LOGIQUE DÉMO ---
+  let finalSchools = schoolsToShow;
+  if (isDemoMode && filtered && schoolsToShow.length > 0) {
+    finalSchools = [schoolsToShow[0]]; // On ne garde que la 1ère école sur la carte
+  }
+  // --------------------------
+
   const iconUrl = filtered
     ? 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png'
     : 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
 
-  schoolsToShow.forEach((school) => {
+  finalSchools.forEach((school) => {
     const lat = parseFloat(school.latitude);
     const lng = parseFloat(school.longitude);
     if (isNaN(lat) || isNaN(lng)) return;
@@ -698,20 +708,31 @@ function displayResults(results, sortKey = currentSortKey, sortAsc = currentSort
           </tr>
         </thead>
         <tbody>
-          ${sorted.map((s, i) => `
-            <tr>
-              <td data-label="RNE">${s.identifiant_de_l_etablissement}</td>
-              <td data-label="Nom école">${s.nom_etablissement}</td>
-              <td data-label="Statut">${s.statut_public_prive}</td>
-              <td data-label="Type">${s.type}</td>
-              <td data-label="Adresse">${s.adresse_1 || ''}${s.adresse_2 ? ', ' + s.adresse_2 : ''}, ${s.code_postal} ${s.nom_commune}</td>
-              <td data-label="Distance" class="num">${s.distanceKm} km</td>
-              <td data-label="Temps" class="num">${s.durationMin} min</td>
-              <td data-label="Itinéraire"><button onclick="showRouteToSchool(${i})" class="route-btn">🛣️ Voir</button></td>
-              <td class="col-details" onclick="showSchoolDetails(${JSON.stringify(sorted[i]).replace(/"/g, '&quot;')}, ${i});event.stopPropagation();"><i class="fas fa-info-circle" style="color:#667eea;cursor:pointer;"></i></td>
-            </tr>
-          `).join('')}
-        </tbody>
+  ${sorted.map((s, i) => {
+    // Déterminer si la ligne doit être floutée
+    const isBlurred = isDemoMode && i > 0;
+    const blurClass = isBlurred ? 'class="demo-blurred"' : '';
+    const onClickAttr = isBlurred ? '' : `onclick="showSchoolDetails(${JSON.stringify(sorted[i]).replace(/"/g, '&quot;')}, ${i});event.stopPropagation();"`;
+
+    return `
+      <tr ${blurClass}>
+        <td data-label="RNE">${s.identifiant_de_l_etablissement}</td>
+        <td data-label="Nom école">${s.nom_etablissement}</td>
+        <td data-label="Statut">${s.statut_public_prive}</td>
+        <td data-label="Type">${s.type}</td>
+        <td data-label="Adresse">${s.adresse_1 || ''}${s.adresse_2 ? ', ' + s.adresse_2 : ''}, ${s.code_postal} ${s.nom_commune}</td>
+        <td data-label="Distance" class="num">${s.distanceKm} km</td>
+        <td data-label="Temps" class="num">${s.durationMin} min</td>
+        <td data-label="Itinéraire">
+            ${isBlurred ? '🔒' : `<button onclick="showRouteToSchool(${i})" class="route-btn">🛣️ Voir</button>`}
+        </td>
+        <td class="col-details" ${onClickAttr}>
+            <i class="fas fa-info-circle" style="color:#667eea;cursor:pointer;"></i>
+        </td>
+      </tr>
+    `;
+  }).join('')}
+</tbody>
       </table>
     </div>
   `;
