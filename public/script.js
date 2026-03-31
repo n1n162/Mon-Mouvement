@@ -724,147 +724,143 @@ function sortResults(key) {
   displayResults(schoolsWithRoutes, currentSortKey, currentSortAsc);
 }
 
-// ===== IMPRESSION / EXPORT PDF =====
-function printResults() {
+// ===== EXPORT PDF =====
+function downloadPDF() {
   if (!schoolsWithRoutes.length) {
-    alert("Aucun résultat à imprimer.");
+    alert("Aucun résultat à exporter.");
     return;
   }
 
+  // Charger jsPDF depuis CDN si pas encore chargé
+  if (typeof window.jspdf === 'undefined') {
+    const s1 = document.createElement('script');
+    s1.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s1.onload = () => {
+      const s2 = document.createElement('script');
+      s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js';
+      s2.onload = () => generatePDF();
+      document.head.appendChild(s2);
+    };
+    document.head.appendChild(s1);
+  } else {
+    generatePDF();
+  }
+}
+
+function generatePDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+  // Infos contexte
   const dept = document.getElementById("departement");
   const deptText = dept.options[dept.selectedIndex]?.text || selectedDepartment;
-  const adresse = document.getElementById("adresse").value || "Position non définie";
+  const adresse = document.getElementById("adresse").value || "Non définie";
   const criterion = document.querySelector('input[name="criterion"]:checked').value;
   const criterionValue = document.getElementById("criterionValue").value;
   const critLabel = criterion === 'distance' ? `≤ ${criterionValue} km` : `≤ ${criterionValue} min de trajet`;
-  const type = document.getElementById("type").value || "Tous types";
+  const type = document.getElementById("type").value || "Tous";
   const statut = document.getElementById("statut").value || "Public & Privé";
   const ep = document.getElementById("educationPrioritaire").value;
-  const epLabel = ep === "REP+" ? "REP+ uniquement" : ep === "REP" ? "REP uniquement" : ep === "hors" ? "Hors éducation prioritaire" : "Tous";
+  const epLabel = ep === "REP+" ? "REP+ seulement" : ep === "REP" ? "REP seulement" : ep === "hors" ? "Hors éd. prioritaire" : "Tous";
   const now = new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+  const pageW = doc.internal.pageSize.getWidth();
 
-  const rows = schoolsWithRoutes.map((s, i) => {
-    const rep = s.appartenance_education_prioritaire
-      ? `<span class="badge-rep">${s.appartenance_education_prioritaire}</span>` : '';
-    const ulis = s.ulis ? `<span class="badge-ulis">ULIS</span>` : '';
-    return `<tr>
-      <td>${i + 1}</td>
-      <td><strong>${s.nom_etablissement}</strong><br><small>${s.nom_commune} (${s.code_postal})</small></td>
-      <td>${s.statut_public_prive}</td>
-      <td>${s.type}</td>
-      <td><small>${s.adresse_1 || ''}${s.adresse_2 ? ', ' + s.adresse_2 : ''}</small></td>
-      <td class="num">${s.distanceKm} km</td>
-      <td class="num">${s.durationMin} min</td>
-      <td>${rep}${ulis}</td>
-      <td><small>${s.telephone || ''}</small></td>
-    </tr>`;
-  }).join('');
+  // --- EN-TÊTE ---
+  doc.setFillColor(102, 126, 234);
+  doc.rect(0, 0, pageW, 22, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.text('🏫 Mon Mouvement — Résultats de recherche', 10, 10);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(deptText, 10, 17);
+  doc.text(`Généré le ${now}`, pageW - 10, 17, { align: 'right' });
 
-  const printWindow = window.open('', '_blank');
-  printWindow.document.write(`<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Mon Mouvement – ${deptText}</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; font-size: 11px; color: #1a1a1a; padding: 20px; }
+  // --- RÉSUMÉ ---
+  doc.setTextColor(50, 50, 50);
+  const cardY = 26;
+  const cards = [
+    { label: '📍 Position de référence', value: adresse.length > 50 ? adresse.substring(0, 47) + '...' : adresse },
+    { label: '🎯 Critère', value: critLabel },
+    { label: '🔍 Filtres', value: `${type} · ${statut} · Éd. prio: ${epLabel}` },
+    { label: '✅ Résultats', value: `${schoolsWithRoutes.length} école(s) trouvée(s)` },
+  ];
+  const cardW = (pageW - 20) / cards.length;
+  cards.forEach((c, i) => {
+    const x = 10 + i * cardW;
+    doc.setFillColor(248, 249, 255);
+    doc.setDrawColor(200, 210, 255);
+    doc.roundedRect(x, cardY, cardW - 3, 14, 2, 2, 'FD');
+    doc.setFontSize(7);
+    doc.setTextColor(130, 130, 150);
+    doc.text(c.label, x + 3, cardY + 5);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(50, 50, 80);
+    doc.text(c.value, x + 3, cardY + 11);
+    doc.setFont('helvetica', 'normal');
+  });
 
-    /* EN-TÊTE */
-    .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #667eea; padding-bottom: 12px; margin-bottom: 16px; }
-    .header-left h1 { font-size: 20px; color: #667eea; margin-bottom: 4px; }
-    .header-left h2 { font-size: 14px; color: #444; font-weight: normal; }
-    .header-right { text-align: right; font-size: 10px; color: #666; }
+  // --- TABLEAU ---
+  const tableData = schoolsWithRoutes.map((s, i) => [
+    i + 1,
+    s.nom_etablissement,
+    s.nom_commune + '
+' + s.code_postal,
+    s.statut_public_prive,
+    s.type,
+    s.distanceKm + ' km',
+    s.durationMin + ' min',
+    s.appartenance_education_prioritaire || '',
+    s.telephone || '',
+  ]);
 
-    /* RÉSUMÉ */
-    .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
-    .summary-card { background: #f8f9ff; border: 1px solid #e0e7ff; border-radius: 8px; padding: 10px 14px; }
-    .summary-card .label { font-size: 9px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
-    .summary-card .value { font-size: 13px; font-weight: bold; color: #333; }
+  doc.autoTable({
+    startY: cardY + 18,
+    head: [['#', 'École', 'Commune', 'Statut', 'Type', 'Distance', 'Temps', 'Éd. Prio.', 'Téléphone']],
+    body: tableData,
+    theme: 'grid',
+    styles: { fontSize: 8, cellPadding: 2.5, overflow: 'linebreak' },
+    headStyles: { fillColor: [102, 126, 234], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+    alternateRowStyles: { fillColor: [248, 249, 255] },
+    columnStyles: {
+      0: { halign: 'center', cellWidth: 8 },
+      1: { cellWidth: 55 },
+      2: { cellWidth: 28 },
+      3: { cellWidth: 18 },
+      4: { cellWidth: 22 },
+      5: { halign: 'center', cellWidth: 18 },
+      6: { halign: 'center', cellWidth: 15 },
+      7: { halign: 'center', cellWidth: 16 },
+      8: { cellWidth: 22 },
+    },
+    didParseCell: (data) => {
+      // Colorier les badges REP/REP+
+      if (data.column.index === 7 && data.cell.raw) {
+        if (data.cell.raw === 'REP+') {
+          data.cell.styles.fillColor = [254, 243, 199];
+          data.cell.styles.textColor = [146, 64, 14];
+          data.cell.styles.fontStyle = 'bold';
+        } else if (data.cell.raw === 'REP') {
+          data.cell.styles.fillColor = [255, 237, 213];
+          data.cell.styles.textColor = [124, 45, 18];
+          data.cell.styles.fontStyle = 'bold';
+        }
+      }
+    },
+    margin: { left: 10, right: 10 },
+  });
 
-    /* TABLEAU */
-    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-    thead tr { background: #667eea; color: white; }
-    thead th { padding: 8px 6px; text-align: left; font-size: 10px; font-weight: 600; }
-    tbody tr:nth-child(even) { background: #f8f9ff; }
-    tbody tr:hover { background: #e8edff; }
-    tbody td { padding: 7px 6px; border-bottom: 1px solid #eee; vertical-align: middle; }
-    td.num { text-align: center; font-weight: 600; color: #667eea; }
-    td:first-child { text-align: center; font-weight: bold; color: #888; }
-    small { color: #666; font-size: 9px; }
+  // --- FOOTER ---
+  const finalY = doc.internal.pageSize.getHeight() - 8;
+  doc.setFontSize(7);
+  doc.setTextColor(150, 150, 150);
+  doc.text('Mon Mouvement — mon-mouvement.vercel.app', 10, finalY);
+  doc.text('Données : data.education.gouv.fr · Trajets : openrouteservice.org', pageW / 2, finalY, { align: 'center' });
+  doc.text(`${schoolsWithRoutes.length} école(s) — ${deptText}`, pageW - 10, finalY, { align: 'right' });
 
-    /* BADGES */
-    .badge-rep { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; border-radius: 4px; padding: 1px 5px; font-size: 9px; font-weight: bold; margin-right: 3px; }
-    .badge-ulis { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; border-radius: 4px; padding: 1px 5px; font-size: 9px; font-weight: bold; }
-
-    /* FOOTER */
-    .footer { margin-top: 20px; padding-top: 10px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; font-size: 9px; color: #999; }
-
-    /* PRINT */
-    @media print {
-      body { padding: 10px; }
-      @page { margin: 15mm; size: A4 landscape; }
-      thead { display: table-header-group; }
-      tr { page-break-inside: avoid; }
-      .no-print { display: none; }
-    }
-  </style>
-</head>
-<body>
-
-  <div class="header">
-    <div class="header-left">
-      <h1>🏫 Mon Mouvement</h1>
-      <h2>Résultats de recherche — ${deptText}</h2>
-    </div>
-    <div class="header-right">
-      Généré le ${now}<br>
-      <strong>${schoolsWithRoutes.length} école(s) trouvée(s)</strong>
-    </div>
-  </div>
-
-  <div class="summary">
-    <div class="summary-card">
-      <div class="label">📍 Position de référence</div>
-      <div class="value" style="font-size:11px;">${adresse}</div>
-    </div>
-    <div class="summary-card">
-      <div class="label">🎯 Critère de recherche</div>
-      <div class="value">${critLabel}</div>
-    </div>
-    <div class="summary-card">
-      <div class="label">🔍 Filtres appliqués</div>
-      <div class="value" style="font-size:10px;">Type: ${type} · ${statut}<br>Éd. prioritaire: ${epLabel}</div>
-    </div>
-  </div>
-
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>École</th>
-        <th>Statut</th>
-        <th>Type</th>
-        <th>Adresse</th>
-        <th>Distance</th>
-        <th>Temps</th>
-        <th>Labels</th>
-        <th>Téléphone</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${rows}
-    </tbody>
-  </table>
-
-  <div class="footer">
-    <span>Mon Mouvement — mon-mouvement.vercel.app</span>
-    <span>Données : data.education.gouv.fr · Trajets : openrouteservice.org</span>
-    <span>${schoolsWithRoutes.length} écoles — ${deptText}</span>
-  </div>
-
-  <script>window.onload = () => { window.print(); }<\/script>
-</body>
-</html>`);
-  printWindow.document.close();
+  // --- TÉLÉCHARGEMENT ---
+  const filename = `mon-mouvement-${selectedDepartment}-${new Date().toISOString().slice(0,10)}.pdf`;
+  doc.save(filename);
 }
