@@ -173,5 +173,14 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 	<script src="script.js"></script>
     <script defer src="/_vercel/insights/script.js"></script>
+	<button onclick="login()">Se connecter avec Google</button>
+
+<script>
+async function login() {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+  });
+}
+</script>
   </body>
 </html>
