@@ -806,8 +806,7 @@ function generatePDF() {
   const tableData = schoolsWithRoutes.map((s, i) => [
     i + 1,
     s.nom_etablissement,
-    s.nom_commune + '
-' + s.code_postal,
+    s.nom_commune + ' ' + s.code_postal,
     s.statut_public_prive,
     s.type,
     s.distanceKm + ' km',
