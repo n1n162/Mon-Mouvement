@@ -464,7 +464,7 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
     return;
   }
 
-  // --- LOGIQUE DÉMO : Masquer le bouton PDF immédiatement ---
+  // --- LOGIQUE DÉMO : On force le bouton PDF à rester caché ---
   if (isDemoMode) {
     document.getElementById("printBtn").style.display = "none";
   }
@@ -483,56 +483,35 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
 
   document.getElementById("resultsSection").style.display = "block";
 
-  // ... (Garder tes filtres statiques et calculs Matrix ORS identiques jusqu'au summaryHTML) ...
+  // 1. Filtres statiques
+  let step = schools.filter(s => s.latitude && s.longitude);
+  if (type) step = step.filter(s => s.type === type);
+  if (statut) step = step.filter(s => s.statut_public_prive === statut);
   
-  // --- REMPLACER LA GÉNÉRATION DU RÉSUMÉ (Ligne ~340) ---
-  const critLabel = criterion === 'distance' ? `≤ ${criterionValue} km` : `≤ ${criterionValue} min de trajet`;
-  
-  let summaryHTML = `<div class="results-summary" style="background:#ebf8ff;border:1px solid #90cdf4;border-radius:8px;padding:8px 14px;margin-bottom:10px;font-size:13px;color:#2c5282;">
-    <i class="fas fa-info-circle"></i>
-    <strong>${filtered.length} école(s) trouvée(s)</strong> avec un trajet ${critLabel}`;
-  
-  if (isDemoMode) {
-    summaryHTML += ` — <span style="color:#c53030;"><strong>Version Démo :</strong> Seul le premier résultat est détaillé.</span>`;
-  } else {
-    summaryHTML += ` — ${preFiltered.length} école(s) évaluée(s) par ORS`;
-  }
-  summaryHTML += `</div>`;
-  
-  document.getElementById("results").innerHTML = summaryHTML;
-
-  // Afficher le bouton imprimer UNIQUEMENT si on n'est PAS en démo
-  if (!isDemoMode) {
-    document.getElementById("printBtn").style.display = "inline-flex";
-  } else {
-    document.getElementById("printBtn").style.display = "none";
+  if (educationPrioritaire === "hors") {
+    step = step.filter(s => s.appartenance_education_prioritaire !== "REP" && s.appartenance_education_prioritaire !== "REP+");
+  } else if (educationPrioritaire) {
+    step = step.filter(s => s.appartenance_education_prioritaire === educationPrioritaire);
   }
 
-  // ... (Garder la suite : tri, displayResults, map.fitBounds) ...
-
-  // Pré-filtre haversine pour limiter les appels API ORS
-  // Pour distance : on garde une marge de 30% (routes plus longues qu'à vol d'oiseau)
-  // Pour temps : on estime ~2 km/min en moyenne (120 km/h), marge très large
+  // 2. Pré-filtre Haversine (vitesse)
   const haversineRadius = criterion === 'distance' ? criterionValue * 1.3 : criterionValue * 2.5;
-  console.log(`🔭 Rayon haversine = ${haversineRadius.toFixed(1)} km (critère=${criterion}, valeur=${criterionValue})`);
-
-  const stepBefore = step.length;
   step.sort((a, b) => {
     const da = haversine(userPosition.lat, userPosition.lng, parseFloat(a.latitude), parseFloat(a.longitude));
     const db = haversine(userPosition.lat, userPosition.lng, parseFloat(b.latitude), parseFloat(b.longitude));
     return da - db;
   });
+  
   const preFiltered = step.slice(0, 300);
-  console.log(`🔽 Envoi à ORS : ${preFiltered.length} écoles`);
 
   if (!preFiltered.length) {
-    document.getElementById("results").innerHTML =
-      `<p><i class='fas fa-exclamation-triangle'></i> Aucune école dans un rayon de ${haversineRadius.toFixed(0)} km à vol d'oiseau avec ces filtres.</p>`;
+    document.getElementById("results").innerHTML = `<p><i class='fas fa-exclamation-triangle'></i> Aucune école trouvée.</p>`;
     displaySchoolMarkers([], true);
     return;
   }
 
   try {
+    // 3. Appel API Matrix
     const source = [userPosition.lng, userPosition.lat];
     const destinations = preFiltered.map(s => [parseFloat(s.longitude), parseFloat(s.latitude)]);
     const matrix = await getMatrixData(source, destinations, eviterPeage);
@@ -543,66 +522,57 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
       distanceKm: (matrix.distances[0][i] / 1000).toFixed(2)
     }));
 
-    // Filtre final selon le critère choisi
-    console.log(`🔍 Filtre: critère=${criterion}, limite=${criterionValue}`);
-    detailed.forEach(s => {
-      const val = criterion === 'distance' ? parseFloat(s.distanceKm) : s.durationMin;
-      const raw = criterion === 'distance' ? s.distanceKm : s.durationMin;
-      console.log(`  ${s.nom_etablissement}: ${s.distanceKm}km, ${s.durationMin}min → valeur comparée=${raw} <= ${criterionValue} ? ${val <= criterionValue ? '✅' : '❌'}`);
-    });
-
+    // 4. Filtre final (C'est ici que 'filtered' est défini !)
     const filtered = detailed.filter(school =>
       criterion === 'distance'
         ? parseFloat(school.distanceKm) <= criterionValue
         : school.durationMin <= criterionValue
     );
 
-    const critLabel = criterion === 'distance'
-      ? `≤ ${criterionValue} km`
-      : `≤ ${criterionValue} min de trajet`;
-    console.log(`✅ ${filtered.length} écoles correspondent au critère (${critLabel})`);
-
-    // Résumé affiché avant le tableau (classe résumé-résultats pour persistance lors du tri)
-    const summaryHTML = `<div class="results-summary" style="background:#ebf8ff;border:1px solid #90cdf4;border-radius:8px;padding:8px 14px;margin-bottom:10px;font-size:13px;color:#2c5282;">
+    // 5. Affichage du résumé
+    const critLabel = criterion === 'distance' ? `≤ ${criterionValue} km` : `≤ ${criterionValue} min`;
+    let summaryHTML = `<div class="results-summary" style="background:#ebf8ff;border:1px solid #90cdf4;border-radius:8px;padding:8px 14px;margin-bottom:10px;font-size:13px;color:#2c5282;">
       <i class="fas fa-info-circle"></i>
-      <strong>${filtered.length} école(s) trouvée(s)</strong> avec un trajet ${critLabel}
-      &mdash; ${preFiltered.length} école(s) évaluée(s) par ORS dans un rayon de ${haversineRadius.toFixed(0)} km à vol d&#39;oiseau
-    </div>`;
+      <strong>${filtered.length} école(s) trouvée(s)</strong> avec un trajet ${critLabel}`;
+    
+    if (isDemoMode) {
+        summaryHTML += ` — <span style="color:#c53030;"><strong>Version Démo :</strong> Seul le 1er résultat est détaillé.</span>`;
+    }
+    summaryHTML += `</div>`;
+    
     document.getElementById("results").innerHTML = summaryHTML;
-    // Bouton imprimer ajouté après le résumé
-    document.getElementById("printBtn").style.display = "inline-flex";
 
-    // Déterminer le tri initial selon le critère choisi
-    currentSortKey = (criterion === 'distance') ? 'distance' : 'time';
-    currentSortAsc = true;
-
-    // Trier immédiatement
-    let sorted = [...filtered];
-    if (currentSortKey === 'distance') {
-      sorted.sort((a, b) => parseFloat(a.distanceKm) - parseFloat(b.distanceKm));
-    } else {
-      sorted.sort((a, b) => a.durationMin - b.durationMin);
+    // Gestion du bouton PDF
+    const printBtn = document.getElementById("printBtn");
+    if (printBtn) {
+        printBtn.style.display = (isDemoMode) ? "none" : "inline-flex";
     }
 
-    schoolsWithRoutes = sorted;
+    // 6. Tri et affichage
+    currentSortKey = (criterion === 'distance') ? 'distance' : 'time';
+    currentSortAsc = true;
+    let sorted = [...filtered].sort((a, b) => {
+        return (currentSortKey === 'distance') 
+            ? parseFloat(a.distanceKm) - parseFloat(b.distanceKm)
+            : a.durationMin - b.durationMin;
+    });
 
+    schoolsWithRoutes = sorted;
     clearAllRoutes();
     displayResults(sorted, currentSortKey, currentSortAsc);
     displaySchoolMarkers(filtered, true);
 
     if (filtered.length > 0) {
-      const allPoints = filtered
-        .filter(s => s.latitude && s.longitude)
-        .map(s => [parseFloat(s.latitude), parseFloat(s.longitude)]);
+      const allPoints = filtered.map(s => [parseFloat(s.latitude), parseFloat(s.longitude)]);
       allPoints.push([userPosition.lat, userPosition.lng]);
       map.fitBounds(L.latLngBounds(allPoints), { padding: [20, 20] });
     }
-  } catch (err) {
-    alert("Erreur de calcul (service ORS) : " + err.message);
-  }
-});
 
-// ===== RESET =====
+  } catch (err) {
+    console.error(err);
+    alert("Erreur de calcul : " + err.message);
+  }
+});// ===== RESET =====
 document.getElementById("resetBtn").addEventListener("click", () => {
   document.getElementById("filterForm").reset();
   document.getElementById("resultsSection").style.display = "none";
