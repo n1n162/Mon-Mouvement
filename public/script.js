@@ -464,6 +464,11 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
     return;
   }
 
+  // --- LOGIQUE DÉMO : Masquer le bouton PDF immédiatement ---
+  if (isDemoMode) {
+    document.getElementById("printBtn").style.display = "none";
+  }
+
   const type = document.getElementById("type").value;
   const statut = document.getElementById("statut").value;
   const educationPrioritaire = document.getElementById("educationPrioritaire").value;
@@ -478,18 +483,32 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
 
   document.getElementById("resultsSection").style.display = "block";
 
-  // Filtres statiques
-  let step = schools.filter(s => s.latitude && s.longitude);
-  if (type) step = step.filter(s => s.type === type);
-  if (statut) step = step.filter(s => s.statut_public_prive === statut);
-  if (educationPrioritaire === "hors") {
-    step = step.filter(s =>
-      s.appartenance_education_prioritaire !== "REP" &&
-      s.appartenance_education_prioritaire !== "REP+"
-    );
-  } else if (educationPrioritaire) {
-    step = step.filter(s => s.appartenance_education_prioritaire === educationPrioritaire);
+  // ... (Garder tes filtres statiques et calculs Matrix ORS identiques jusqu'au summaryHTML) ...
+  
+  // --- REMPLACER LA GÉNÉRATION DU RÉSUMÉ (Ligne ~340) ---
+  const critLabel = criterion === 'distance' ? `≤ ${criterionValue} km` : `≤ ${criterionValue} min de trajet`;
+  
+  let summaryHTML = `<div class="results-summary" style="background:#ebf8ff;border:1px solid #90cdf4;border-radius:8px;padding:8px 14px;margin-bottom:10px;font-size:13px;color:#2c5282;">
+    <i class="fas fa-info-circle"></i>
+    <strong>${filtered.length} école(s) trouvée(s)</strong> avec un trajet ${critLabel}`;
+  
+  if (isDemoMode) {
+    summaryHTML += ` — <span style="color:#c53030;"><strong>Version Démo :</strong> Seul le premier résultat est détaillé.</span>`;
+  } else {
+    summaryHTML += ` — ${preFiltered.length} école(s) évaluée(s) par ORS`;
   }
+  summaryHTML += `</div>`;
+  
+  document.getElementById("results").innerHTML = summaryHTML;
+
+  // Afficher le bouton imprimer UNIQUEMENT si on n'est PAS en démo
+  if (!isDemoMode) {
+    document.getElementById("printBtn").style.display = "inline-flex";
+  } else {
+    document.getElementById("printBtn").style.display = "none";
+  }
+
+  // ... (Garder la suite : tri, displayResults, map.fitBounds) ...
 
   // Pré-filtre haversine pour limiter les appels API ORS
   // Pour distance : on garde une marge de 30% (routes plus longues qu'à vol d'oiseau)
@@ -598,6 +617,7 @@ document.getElementById("resetBtn").addEventListener("click", () => {
 
 // AJOUTE CETTE FONCTION avant displayResults()
 function showSchoolDetails(school, index) {
+  if (isDemoMode && index > 0) return;
   const modal = document.createElement('div');
   modal.id = 'schoolModal';
   modal.style.cssText = `
