@@ -746,7 +746,7 @@ function downloadPDF() {
 
   loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', () => {
     loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js', () => {
-      loadScript('https://cdnjs.cloudflare.com/ajax/libs/leaflet-image/0.4.0/leaflet-image.js', () => {
+      loadScript('https://cdn.jsdelivr.net/npm/leaflet-image@0.4.0/leaflet-image.js', () => {
         // Capturer la carte puis générer le PDF
         if (typeof leafletImage !== 'undefined' && map) {
           leafletImage(map, (err, canvas) => {
