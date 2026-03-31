@@ -2,32 +2,32 @@
   {
     "code": "01",
     "nom": "Ain",
-    "actif": false
+    "actif": true
   },
   {
     "code": "02",
     "nom": "Aisne",
-    "actif": false
+    "actif": true
   },
   {
     "code": "03",
     "nom": "Allier",
-    "actif": false
+    "actif": true
   },
   {
     "code": "04",
     "nom": "Alpes-de-Haute-Provence",
-    "actif": false
+    "actif": true
   },
   {
     "code": "05",
     "nom": "Hautes-Alpes",
-    "actif": false
+    "actif": true
   },
   {
     "code": "06",
     "nom": "Alpes-Maritimes",
-    "actif": false
+    "actif": true
   },
   {
     "code": "07",
@@ -37,87 +37,87 @@
   {
     "code": "08",
     "nom": "Ardennes",
-    "actif": false
+    "actif": true
   },
   {
     "code": "09",
     "nom": "Ariège",
-    "actif": false
+    "actif": true
   },
   {
     "code": "10",
     "nom": "Aube",
-    "actif": false
+    "actif": true
   },
   {
     "code": "11",
     "nom": "Aude",
-    "actif": false
+    "actif": true
   },
   {
     "code": "12",
     "nom": "Aveyron",
-    "actif": false
+    "actif": true
   },
   {
     "code": "13",
     "nom": "Bouches-du-Rhône",
-    "actif": false
+    "actif": true
   },
   {
     "code": "14",
     "nom": "Calvados",
-    "actif": false
+    "actif": true
   },
   {
     "code": "15",
     "nom": "Cantal",
-    "actif": false
+    "actif": true
   },
   {
     "code": "16",
     "nom": "Charente",
-    "actif": false
+    "actif": true
   },
   {
     "code": "17",
     "nom": "Charente-Maritime",
-    "actif": false
+    "actif": true
   },
   {
     "code": "18",
     "nom": "Cher",
-    "actif": false
+    "actif": true
   },
   {
     "code": "19",
     "nom": "Corrèze",
-    "actif": false
+    "actif": true
   },
   {
     "code": "21",
     "nom": "Côte-d'Or",
-    "actif": false
+    "actif": true
   },
   {
     "code": "22",
     "nom": "Côtes-d'Armor",
-    "actif": false
+    "actif": true
   },
   {
     "code": "23",
     "nom": "Creuse",
-    "actif": false
+    "actif": true
   },
   {
     "code": "24",
     "nom": "Dordogne",
-    "actif": false
+    "actif": true
   },
   {
     "code": "25",
     "nom": "Doubs",
-    "actif": false
+    "actif": true
   },
   {
     "code": "26",
@@ -127,67 +127,67 @@
   {
     "code": "27",
     "nom": "Eure",
-    "actif": false
+    "actif": true
   },
   {
     "code": "28",
     "nom": "Eure-et-Loir",
-    "actif": false
+    "actif": true
   },
   {
     "code": "29",
     "nom": "Finistère",
-    "actif": false
+    "actif": true
   },
   {
     "code": "2A",
     "nom": "Corse-du-Sud",
-    "actif": false
+    "actif": true
   },
   {
     "code": "2B",
     "nom": "Haute-Corse",
-    "actif": false
+    "actif": true
   },
   {
     "code": "30",
     "nom": "Gard",
-    "actif": false
+    "actif": true
   },
   {
     "code": "31",
     "nom": "Haute-Garonne",
-    "actif": false
+    "actif": true
   },
   {
     "code": "32",
     "nom": "Gers",
-    "actif": false
+    "actif": true
   },
   {
     "code": "33",
     "nom": "Gironde",
-    "actif": false
+    "actif": true
   },
   {
     "code": "34",
     "nom": "Hérault",
-    "actif": false
+    "actif": true
   },
   {
     "code": "35",
     "nom": "Ille-et-Vilaine",
-    "actif": false
+    "actif": true
   },
   {
     "code": "36",
     "nom": "Indre",
-    "actif": false
+    "actif": true
   },
   {
     "code": "37",
     "nom": "Indre-et-Loire",
-    "actif": false
+    "actif": true
   },
   {
     "code": "38",
@@ -197,57 +197,57 @@
   {
     "code": "39",
     "nom": "Jura",
-    "actif": false
+    "actif": true
   },
   {
     "code": "40",
     "nom": "Landes",
-    "actif": false
+    "actif": true
   },
   {
     "code": "41",
     "nom": "Loir-et-Cher",
-    "actif": false
+    "actif": true
   },
   {
     "code": "42",
     "nom": "Loire",
-    "actif": false
+    "actif": true
   },
   {
     "code": "43",
     "nom": "Haute-Loire",
-    "actif": false
+    "actif": true
   },
   {
     "code": "44",
     "nom": "Loire-Atlantique",
-    "actif": false
+    "actif": true
   },
   {
     "code": "45",
     "nom": "Loiret",
-    "actif": false
+    "actif": true
   },
   {
     "code": "46",
     "nom": "Lot",
-    "actif": false
+    "actif": true
   },
   {
     "code": "47",
     "nom": "Lot-et-Garonne",
-    "actif": false
+    "actif": true
   },
   {
     "code": "48",
     "nom": "Lozère",
-    "actif": false
+    "actif": true
   },
   {
     "code": "49",
     "nom": "Maine-et-Loire",
-    "actif": false
+    "actif": true
   },
   {
     "code": "50",
@@ -257,42 +257,42 @@
   {
     "code": "51",
     "nom": "Marne",
-    "actif": false
+    "actif": true
   },
   {
     "code": "52",
     "nom": "Haute-Marne",
-    "actif": false
+    "actif": true
   },
   {
     "code": "53",
     "nom": "Mayenne",
-    "actif": false
+    "actif": true
   },
   {
     "code": "54",
     "nom": "Meurthe-et-Moselle",
-    "actif": false
+    "actif": true
   },
   {
     "code": "55",
     "nom": "Meuse",
-    "actif": false
+    "actif": true
   },
   {
     "code": "56",
     "nom": "Morbihan",
-    "actif": false
+    "actif": true
   },
   {
     "code": "57",
     "nom": "Moselle",
-    "actif": false
+    "actif": true
   },
   {
     "code": "58",
     "nom": "Nièvre",
-    "actif": false
+    "actif": true
   },
   {
     "code": "59",
@@ -302,12 +302,12 @@
   {
     "code": "60",
     "nom": "Oise",
-    "actif": false
+    "actif": true
   },
   {
     "code": "61",
     "nom": "Orne",
-    "actif": false
+    "actif": true
   },
   {
     "code": "62",
@@ -317,52 +317,52 @@
   {
     "code": "63",
     "nom": "Puy-de-Dôme",
-    "actif": false
+    "actif": true
   },
   {
     "code": "64",
     "nom": "Pyrénées-Atlantiques",
-    "actif": false
+    "actif": true
   },
   {
     "code": "65",
     "nom": "Hautes-Pyrénées",
-    "actif": false
+    "actif": true
   },
   {
     "code": "66",
     "nom": "Pyrénées-Orientales",
-    "actif": false
+    "actif": true
   },
   {
     "code": "67",
     "nom": "Bas-Rhin",
-    "actif": false
+    "actif": true
   },
   {
     "code": "68",
     "nom": "Haut-Rhin",
-    "actif": false
+    "actif": true
   },
   {
     "code": "69",
     "nom": "Rhône",
-    "actif": false
+    "actif": true
   },
   {
     "code": "70",
     "nom": "Haute-Saône",
-    "actif": false
+    "actif": true
   },
   {
     "code": "71",
     "nom": "Saône-et-Loire",
-    "actif": false
+    "actif": true
   },
   {
     "code": "72",
     "nom": "Sarthe",
-    "actif": false
+    "actif": true
   },
   {
     "code": "73",
@@ -377,161 +377,161 @@
   {
     "code": "75",
     "nom": "Paris",
-    "actif": false
+    "actif": true
   },
   {
     "code": "76",
     "nom": "Seine-Maritime",
-    "actif": false
+    "actif": true
   },
   {
     "code": "77",
     "nom": "Seine-et-Marne",
-    "actif": false
+    "actif": true
   },
   {
     "code": "78",
     "nom": "Yvelines",
-    "actif": false
+    "actif": true
   },
   {
     "code": "79",
     "nom": "Deux-Sèvres",
-    "actif": false
+    "actif": true
   },
   {
     "code": "80",
     "nom": "Somme",
-    "actif": false
+    "actif": true
   },
   {
     "code": "81",
     "nom": "Tarn",
-    "actif": false
+    "actif": true
   },
   {
     "code": "82",
     "nom": "Tarn-et-Garonne",
-    "actif": false
+    "actif": true
   },
   {
     "code": "83",
     "nom": "Var",
-    "actif": false
+    "actif": true
   },
   {
     "code": "84",
     "nom": "Vaucluse",
-    "actif": false
+    "actif": true
   },
   {
     "code": "85",
     "nom": "Vendée",
-    "actif": false
+    "actif": true
   },
   {
     "code": "86",
     "nom": "Vienne",
-    "actif": false
+    "actif": true
   },
   {
     "code": "87",
     "nom": "Haute-Vienne",
-    "actif": false
+    "actif": true
   },
   {
     "code": "88",
     "nom": "Vosges",
-    "actif": false
+    "actif": true
   },
   {
     "code": "89",
     "nom": "Yonne",
-    "actif": false
+    "actif": true
   },
   {
     "code": "90",
     "nom": "Territoire de Belfort",
-    "actif": false
+    "actif": true
   },
   {
     "code": "91",
     "nom": "Essonne",
-    "actif": false
+    "actif": true
   },
   {
     "code": "92",
     "nom": "Hauts-de-Seine",
-    "actif": false
+    "actif": true
   },
   {
     "code": "93",
     "nom": "Seine-Saint-Denis",
-    "actif": false
+    "actif": true
   },
   {
     "code": "94",
     "nom": "Val-de-Marne",
-    "actif": false
+    "actif": true
   },
   {
     "code": "95",
     "nom": "Val-d'Oise",
-    "actif": false
+    "actif": true
   },
   {
     "code": "971",
     "nom": "Guadeloupe",
-    "actif": false
+    "actif": true
   },
   {
     "code": "972",
     "nom": "Martinique",
-    "actif": false
+    "actif": true
   },
   {
     "code": "973",
     "nom": "Guyane",
-    "actif": false
+    "actif": true
   },
   {
     "code": "974",
     "nom": "La Réunion",
-    "actif": false
+    "actif": true
   },
   {
     "code": "975",
     "nom": "Saint-Pierre-et-Miquelon",
-    "actif": false
+    "actif": true
   },
   {
     "code": "976",
     "nom": "Mayotte",
-    "actif": false
+    "actif": true
   },
   {
     "code": "977",
     "nom": "Saint-Barthélemy",
-    "actif": false
+    "actif": true
   },
   {
     "code": "978",
     "nom": "Saint-Martin",
-    "actif": false
+    "actif": true
   },
   {
     "code": "986",
     "nom": "Wallis-et-Futuna",
-    "actif": false
+    "actif": true
   },
   {
     "code": "987",
     "nom": "Polynésie française",
-    "actif": false
+    "actif": true
   },
   {
     "code": "988",
     "nom": "Nouvelle-Calédonie",
-    "actif": false
+    "actif": true
   }
 ]
