@@ -741,7 +741,7 @@ function downloadPDF() {
     const s = document.createElement('script');
     s.src = src;
     s.onload = cb;
-    s.onerror = () => cb(); // continuer meme si echec
+    s.onerror = () => cb();
     document.head.appendChild(s);
   }
 
@@ -750,8 +750,7 @@ function downloadPDF() {
       loadScript('https://cdn.jsdelivr.net/npm/leaflet-image@0.4.0/leaflet-image.js', () => {
         if (typeof leafletImage !== 'undefined' && map) {
           leafletImage(map, (err, canvas) => {
-            const mapDataUrl = (!err && canvas) ? canvas.toDataURL('image/jpeg', 0.82) : null;
-            generatePDF(mapDataUrl);
+            generatePDF((!err && canvas) ? canvas : null);
             btn.innerHTML = originalText;
             btn.disabled = false;
           });
@@ -765,12 +764,13 @@ function downloadPDF() {
   });
 }
 
-function generatePDF(mapDataUrl) {
+function generatePDF(mapCanvas) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth(); // 297mm
   const pageH = doc.internal.pageSize.getHeight(); // 210mm
   const margin = 8;
+  const usableW = pageW - 2 * margin; // 281mm
 
   // Contexte
   const dept = document.getElementById("departement");
@@ -778,156 +778,174 @@ function generatePDF(mapDataUrl) {
   const adresse = document.getElementById("adresse").value || "Non definie";
   const criterion = document.querySelector('input[name="criterion"]:checked').value;
   const criterionValue = document.getElementById("criterionValue").value;
-  const critLabel = criterion === 'distance' ? `<= ${criterionValue} km` : `<= ${criterionValue} min de trajet`;
+  const critLabel = criterion === 'distance' ? `<= ${criterionValue} km` : `<= ${criterionValue} min`;
   const type = document.getElementById("type").value || "Tous";
-  const statut = document.getElementById("statut").value || "Public & Prive";
+  const statut = document.getElementById("statut").value || "Pub. & Pri.";
   const ep = document.getElementById("educationPrioritaire").value;
-  const epLabel = ep === "REP+" ? "REP+ seulement" : ep === "REP" ? "REP seulement" : ep === "hors" ? "Hors ed. prio." : "Tous";
+  const epLabel = ep === "REP+" ? "REP+" : ep === "REP" ? "REP" : ep === "hors" ? "Hors prio." : "Tous";
   const now = new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
 
-  // ======= FONCTION FOOTER =======
-  function addFooter(pageNum, totalPages) {
-    doc.setPage(pageNum);
-    doc.setFillColor(245, 246, 255);
-    doc.rect(0, pageH - 8, pageW, 8, 'F');
-    doc.setFontSize(7);
-    doc.setTextColor(130, 130, 160);
-    doc.text('Mon Mouvement - mon-mouvement.vercel.app', margin, pageH - 3);
-    doc.text('Donnees : data.education.gouv.fr | Trajets : openrouteservice.org', pageW / 2, pageH - 3, { align: 'center' });
-    doc.text(`Page ${pageNum}/${totalPages}`, pageW - margin, pageH - 3, { align: 'right' });
+  const shortType = t => {
+    if (!t) return '';
+    return t === 'maternelle' ? 'Matern.' : t === 'élémentaire' ? 'Elem.' : t === 'primaire' ? 'Prim.' : t;
+  };
+  const shortCirco = c => c ? c.replace(/Circonscription d.inspection du 1er degr. de /i, '').trim() : '';
+  const shortMail = m => m ? m.replace(/@ac-[a-z-]+\.fr$/, '@...') : '';
+
+  function addPageHeader(title, right) {
+    doc.setFillColor(102, 126, 234);
+    doc.rect(0, 0, pageW, 13, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text(title, margin, 9);
+    if (right) {
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text(right, pageW - margin, 9, { align: 'right' });
+    }
   }
 
-  // ======= PAGE 1 : EN-TETE + RESUME + CARTE =======
+  function addFooters() {
+    const total = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= total; i++) {
+      doc.setPage(i);
+      doc.setFillColor(245, 246, 255);
+      doc.rect(0, pageH - 7, pageW, 7, 'F');
+      doc.setFontSize(6.5);
+      doc.setTextColor(140, 140, 170);
+      doc.text('Mon Mouvement - mon-mouvement.vercel.app', margin, pageH - 2.5);
+      doc.text('Donnees : data.education.gouv.fr | Trajets : openrouteservice.org', pageW / 2, pageH - 2.5, { align: 'center' });
+      doc.text(`Page ${i}/${total}`, pageW - margin, pageH - 2.5, { align: 'right' });
+    }
+  }
 
-  // Bandeau titre
-  doc.setFillColor(102, 126, 234);
-  doc.rect(0, 0, pageW, 18, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
-  doc.text('Mon Mouvement - Resultats de recherche', margin, 8);
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.text(deptText, margin, 14);
-  doc.text(`Genere le ${now}  |  ${schoolsWithRoutes.length} ecole(s) trouvee(s)`, pageW - margin, 14, { align: 'right' });
+  // ===== PAGE 1 : RESUME + CARTE =====
+  addPageHeader('Mon Mouvement - Resultats de recherche', `${deptText}  |  ${now}`);
 
-  // 4 cartes resume cote a cote
-  const cardY = 21;
+  // 4 cartes resume
+  const cardY = 16;
   const cardH = 16;
-  const cardW = (pageW - 2 * margin - 9) / 4;
-  const cardDefs = [
-    { icon: 'Position', label: 'Position de reference', val: adresse.length > 50 ? adresse.substring(0, 47) + '...' : adresse },
-    { icon: 'Critere', label: 'Critere de recherche', val: critLabel },
-    { icon: 'Filtres', label: 'Filtres appliques', val: `${type} | ${statut} | ${epLabel}` },
-    { icon: 'Resultats', label: 'Ecoles trouvees', val: `${schoolsWithRoutes.length} ecole(s)` },
-  ];
-
-  cardDefs.forEach((c, i) => {
+  const cardW = (usableW - 9) / 4;
+  [
+    { label: 'Position de reference', val: adresse.length > 52 ? adresse.substring(0, 49) + '...' : adresse },
+    { label: 'Critere',  val: critLabel + ' de trajet' },
+    { label: 'Filtres',  val: `${type} | ${statut} | Ed.prio: ${epLabel}` },
+    { label: 'Resultats', val: `${schoolsWithRoutes.length} ecole(s) trouvee(s)` },
+  ].forEach((c, i) => {
     const x = margin + i * (cardW + 3);
     doc.setFillColor(250, 251, 255);
-    doc.setDrawColor(180, 195, 245);
+    doc.setDrawColor(190, 200, 240);
     doc.setLineWidth(0.3);
     doc.roundedRect(x, cardY, cardW, cardH, 2, 2, 'FD');
-    // Label
-    doc.setFontSize(7);
-    doc.setTextColor(140, 140, 170);
+    doc.setFontSize(6.5);
+    doc.setTextColor(150, 150, 180);
     doc.setFont('helvetica', 'normal');
-    doc.text(c.label, x + 4, cardY + 5);
-    // Valeur
+    doc.text(c.label, x + 3, cardY + 5.5);
     doc.setFontSize(8.5);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(40, 40, 80);
-    doc.text(c.val, x + 4, cardY + 12);
+    doc.setTextColor(40, 40, 90);
+    doc.text(c.val, x + 3, cardY + 12.5);
     doc.setFont('helvetica', 'normal');
   });
 
-  // Carte Leaflet
+  // Carte — ratio correct pour eviter l'etirement
   const mapY = cardY + cardH + 3;
-  const mapH = mapDataUrl ? (pageH - mapY - 12) : 0;
+  const mapMaxH = pageH - mapY - 11;
+  const mapMaxW = usableW;
 
-  if (mapDataUrl) {
-    doc.setDrawColor(180, 195, 245);
+  if (mapCanvas) {
+    // Calculer le ratio reel de la carte pour ne pas l'etirer
+    const canvasW = mapCanvas.width;
+    const canvasH = mapCanvas.height;
+    const ratio = canvasW / canvasH;
+
+    let mapW = mapMaxW;
+    let mapH = mapW / ratio;
+
+    // Si trop haut, limiter la hauteur
+    if (mapH > mapMaxH) {
+      mapH = mapMaxH;
+      mapW = mapH * ratio;
+    }
+
+    // Centrer horizontalement
+    const mapX = margin + (mapMaxW - mapW) / 2;
+
+    doc.setDrawColor(190, 200, 240);
     doc.setLineWidth(0.3);
-    doc.rect(margin, mapY, pageW - 2 * margin, mapH);
-    doc.addImage(mapDataUrl, 'JPEG', margin, mapY, pageW - 2 * margin, mapH);
-    doc.setFontSize(7);
+    doc.rect(mapX, mapY, mapW, mapH);
+    doc.addImage(mapCanvas.toDataURL('image/jpeg', 0.82), 'JPEG', mapX, mapY, mapW, mapH);
+    doc.setFontSize(6.5);
     doc.setTextColor(150, 150, 180);
-    doc.text('Les marqueurs verts representent les ecoles correspondant aux criteres de recherche', pageW / 2, mapY + mapH + 3, { align: 'center' });
+    doc.text('Les marqueurs representent les ecoles correspondant aux criteres', pageW / 2, mapY + mapH + 3.5, { align: 'center' });
   }
 
-  // ======= PAGE 2+ : TABLEAU =======
+  // ===== PAGE 2+ : TABLEAU =====
   doc.addPage();
 
-  // Sous-titre tableau
-  doc.setFillColor(102, 126, 234);
-  doc.rect(0, 0, pageW, 12, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.text(`Liste des ecoles - ${deptText}`, margin, 8);
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`${schoolsWithRoutes.length} ecole(s)  |  ${critLabel}`, pageW - margin, 8, { align: 'right' });
+  // Largeurs colonnes — total = 281mm
+  // #(6) Ecole(38) Adresse(28) Commune(24) Statut(12) Type(14) Dist(13) Temps(12) EdPrio(12) Eleves(10) ULIS(9) Tel(19) Mail(28) Circo(27) RNE(16) = 268 → ajuster
+  const colWidths = [6, 38, 27, 23, 11, 13, 13, 12, 12, 10, 9, 19, 28, 27, 16]; // total = 264, bon
+  // Verif
+  const totalW = colWidths.reduce((a,b) => a+b, 0);
 
-  // Donnees tableau — numeros sans saut de ligne
-  const tableData = schoolsWithRoutes.map((s, i) => {
-    const num = String(i + 1); // string simple, pas de saut
-    return [
-      num,
-      s.nom_etablissement || '',
-      s.adresse_1 || '',
-      (s.nom_commune || '') + (s.code_postal ? '  ' + s.code_postal : ''),
-      s.statut_public_prive === 'Public' ? 'Pub.' : 'Priv.',
-      s.type || '',
-      s.distanceKm ? s.distanceKm + ' km' : '',
-      s.durationMin ? s.durationMin + ' min' : '',
-      s.appartenance_education_prioritaire || '',
-      s.nombre_d_eleves ? String(s.nombre_d_eleves) : '',
-      s.ulis ? 'Oui' : '',
-      s.telephone || '',
-      s.mail ? s.mail.replace('@ac-grenoble.fr','@...grenoble').replace('@ac-normandie.fr','@...normandie') : '',
-      s.nom_circonscription ? s.nom_circonscription.replace("Circonscription d'inspection du 1er degre de ", '').replace("Circonscription d'inspection du 1er degré de ", '') : '',
-      s.identifiant_de_l_etablissement || '',
-    ];
-  });
+  const tableData = schoolsWithRoutes.map((s, i) => [
+    String(i + 1),
+    s.nom_etablissement || '',
+    s.adresse_1 || '',
+    (s.nom_commune || '') + (s.code_postal ? ' ' + s.code_postal : ''),
+    s.statut_public_prive === 'Public' ? 'Pub.' : 'Pri.',
+    shortType(s.type),
+    s.distanceKm ? s.distanceKm + ' km' : '',
+    s.durationMin ? s.durationMin + ' min' : '',
+    s.appartenance_education_prioritaire || '',
+    s.nombre_d_eleves ? String(s.nombre_d_eleves) : '-',
+    s.ulis ? 'Oui' : '',
+    s.telephone || '',
+    shortMail(s.mail),
+    shortCirco(s.nom_circonscription),
+    s.identifiant_de_l_etablissement || '',
+  ]);
 
   doc.autoTable({
-    startY: 14,
-    head: [['#', 'Ecole', 'Adresse', 'Commune', 'Statut', 'Type', 'Dist.', 'Temps', 'Ed.Prio', 'Eleves', 'ULIS', 'Tel.', 'Mail', 'Circonscription', 'RNE']],
+    startY: 15,
+    head: [['#', 'Ecole', 'Adresse', 'Commune', 'Stat.', 'Type', 'Dist.', 'Temps', 'Ed.Prio', 'Eleves', 'ULIS', 'Tel.', 'Mail', 'Circonscription', 'RNE']],
     body: tableData,
     theme: 'striped',
     styles: {
-      fontSize: 7,
-      cellPadding: { top: 2.5, right: 2, bottom: 2.5, left: 2 },
+      fontSize: 6.5,
+      cellPadding: { top: 2, right: 1.5, bottom: 2, left: 1.5 },
       overflow: 'linebreak',
       valign: 'middle',
-      lineColor: [220, 225, 245],
+      lineColor: [215, 220, 240],
       lineWidth: 0.1,
     },
     headStyles: {
       fillColor: [80, 100, 200],
       textColor: 255,
       fontStyle: 'bold',
-      fontSize: 7,
+      fontSize: 6.5,
       halign: 'center',
+      cellPadding: 2.5,
     },
     alternateRowStyles: { fillColor: [248, 250, 255] },
     columnStyles: {
-      0:  { halign: 'center', cellWidth: 7,  fontStyle: 'bold', textColor: [100, 100, 130] },
-      1:  { cellWidth: 42 },
-      2:  { cellWidth: 32, fontSize: 6.5 },
-      3:  { cellWidth: 26, fontSize: 6.5 },
-      4:  { halign: 'center', cellWidth: 11 },
-      5:  { halign: 'center', cellWidth: 16 },
-      6:  { halign: 'center', cellWidth: 13, textColor: [50, 100, 200], fontStyle: 'bold' },
-      7:  { halign: 'center', cellWidth: 13, textColor: [50, 100, 200], fontStyle: 'bold' },
-      8:  { halign: 'center', cellWidth: 14 },
-      9:  { halign: 'center', cellWidth: 11 },
-      10: { halign: 'center', cellWidth: 10 },
-      11: { cellWidth: 20, fontSize: 6.5 },
-      12: { cellWidth: 34, fontSize: 6 },
-      13: { cellWidth: 28, fontSize: 6.5 },
-      14: { halign: 'center', cellWidth: 16, fontSize: 6.5 },
+      0:  { halign: 'center', cellWidth: colWidths[0],  fontStyle: 'bold', textColor: [100, 100, 140] },
+      1:  { cellWidth: colWidths[1] },
+      2:  { cellWidth: colWidths[2], fontSize: 6 },
+      3:  { cellWidth: colWidths[3], fontSize: 6 },
+      4:  { halign: 'center', cellWidth: colWidths[4] },
+      5:  { halign: 'center', cellWidth: colWidths[5] },
+      6:  { halign: 'center', cellWidth: colWidths[6], textColor: [40, 80, 190], fontStyle: 'bold' },
+      7:  { halign: 'center', cellWidth: colWidths[7], textColor: [40, 80, 190], fontStyle: 'bold' },
+      8:  { halign: 'center', cellWidth: colWidths[8] },
+      9:  { halign: 'center', cellWidth: colWidths[9] },
+      10: { halign: 'center', cellWidth: colWidths[10] },
+      11: { cellWidth: colWidths[11], fontSize: 6 },
+      12: { cellWidth: colWidths[12], fontSize: 6 },
+      13: { cellWidth: colWidths[13], fontSize: 6 },
+      14: { halign: 'center', cellWidth: colWidths[14], fontSize: 6 },
     },
     didParseCell: (data) => {
       if (data.column.index === 8) {
@@ -947,27 +965,13 @@ function generatePDF(mapDataUrl) {
         data.cell.styles.fontStyle = 'bold';
       }
     },
-    margin: { left: margin, right: margin, bottom: 10 },
+    margin: { left: margin, right: margin, bottom: 9 },
     didDrawPage: () => {
-      // Re-dessiner l'en-tete sur chaque nouvelle page du tableau
-      doc.setFillColor(102, 126, 234);
-      doc.rect(0, 0, pageW, 12, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.text(`Liste des ecoles - ${deptText}`, margin, 8);
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`${schoolsWithRoutes.length} ecole(s)  |  ${critLabel}`, pageW - margin, 8, { align: 'right' });
+      addPageHeader(`Liste des ecoles - ${deptText}`, `${schoolsWithRoutes.length} ecole(s)  |  ${critLabel}`);
     },
   });
 
-  // Footers sur toutes les pages
-  const totalPages = doc.internal.getNumberOfPages();
-  for (let i = 1; i <= totalPages; i++) {
-    addFooter(i, totalPages);
-  }
+  addFooters();
 
-  const filename = `mon-mouvement-${selectedDepartment}-${new Date().toISOString().slice(0,10)}.pdf`;
-  doc.save(filename);
+  doc.save(`mon-mouvement-${selectedDepartment}-${new Date().toISOString().slice(0,10)}.pdf`);
 }
