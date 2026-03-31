@@ -72,6 +72,7 @@ document.getElementById("departement").addEventListener("change", function () {
     document.getElementById("mapSection").style.display = "none";
     document.getElementById("searchSection").style.display = "none";
     document.getElementById("resultsSection").style.display = "none";
+  document.getElementById("printBtn").style.display = "none";
     if (map) { map.remove(); map = null; }
   }
 });
@@ -539,6 +540,8 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
       &mdash; ${preFiltered.length} école(s) évaluée(s) par ORS dans un rayon de ${haversineRadius.toFixed(0)} km à vol d&#39;oiseau
     </div>`;
     document.getElementById("results").innerHTML = summaryHTML;
+    // Bouton imprimer ajouté après le résumé
+    document.getElementById("printBtn").style.display = "inline-flex";
 
     // Déterminer le tri initial selon le critère choisi
     currentSortKey = (criterion === 'distance') ? 'distance' : 'time';
@@ -719,4 +722,149 @@ function sortResults(key) {
   if (currentSortKey === key) currentSortAsc = !currentSortAsc;
   else { currentSortKey = key; currentSortAsc = true; }
   displayResults(schoolsWithRoutes, currentSortKey, currentSortAsc);
+}
+
+// ===== IMPRESSION / EXPORT PDF =====
+function printResults() {
+  if (!schoolsWithRoutes.length) {
+    alert("Aucun résultat à imprimer.");
+    return;
+  }
+
+  const dept = document.getElementById("departement");
+  const deptText = dept.options[dept.selectedIndex]?.text || selectedDepartment;
+  const adresse = document.getElementById("adresse").value || "Position non définie";
+  const criterion = document.querySelector('input[name="criterion"]:checked').value;
+  const criterionValue = document.getElementById("criterionValue").value;
+  const critLabel = criterion === 'distance' ? `≤ ${criterionValue} km` : `≤ ${criterionValue} min de trajet`;
+  const type = document.getElementById("type").value || "Tous types";
+  const statut = document.getElementById("statut").value || "Public & Privé";
+  const ep = document.getElementById("educationPrioritaire").value;
+  const epLabel = ep === "REP+" ? "REP+ uniquement" : ep === "REP" ? "REP uniquement" : ep === "hors" ? "Hors éducation prioritaire" : "Tous";
+  const now = new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+
+  const rows = schoolsWithRoutes.map((s, i) => {
+    const rep = s.appartenance_education_prioritaire
+      ? `<span class="badge-rep">${s.appartenance_education_prioritaire}</span>` : '';
+    const ulis = s.ulis ? `<span class="badge-ulis">ULIS</span>` : '';
+    return `<tr>
+      <td>${i + 1}</td>
+      <td><strong>${s.nom_etablissement}</strong><br><small>${s.nom_commune} (${s.code_postal})</small></td>
+      <td>${s.statut_public_prive}</td>
+      <td>${s.type}</td>
+      <td><small>${s.adresse_1 || ''}${s.adresse_2 ? ', ' + s.adresse_2 : ''}</small></td>
+      <td class="num">${s.distanceKm} km</td>
+      <td class="num">${s.durationMin} min</td>
+      <td>${rep}${ulis}</td>
+      <td><small>${s.telephone || ''}</small></td>
+    </tr>`;
+  }).join('');
+
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Mon Mouvement – ${deptText}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; font-size: 11px; color: #1a1a1a; padding: 20px; }
+
+    /* EN-TÊTE */
+    .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #667eea; padding-bottom: 12px; margin-bottom: 16px; }
+    .header-left h1 { font-size: 20px; color: #667eea; margin-bottom: 4px; }
+    .header-left h2 { font-size: 14px; color: #444; font-weight: normal; }
+    .header-right { text-align: right; font-size: 10px; color: #666; }
+
+    /* RÉSUMÉ */
+    .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+    .summary-card { background: #f8f9ff; border: 1px solid #e0e7ff; border-radius: 8px; padding: 10px 14px; }
+    .summary-card .label { font-size: 9px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+    .summary-card .value { font-size: 13px; font-weight: bold; color: #333; }
+
+    /* TABLEAU */
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    thead tr { background: #667eea; color: white; }
+    thead th { padding: 8px 6px; text-align: left; font-size: 10px; font-weight: 600; }
+    tbody tr:nth-child(even) { background: #f8f9ff; }
+    tbody tr:hover { background: #e8edff; }
+    tbody td { padding: 7px 6px; border-bottom: 1px solid #eee; vertical-align: middle; }
+    td.num { text-align: center; font-weight: 600; color: #667eea; }
+    td:first-child { text-align: center; font-weight: bold; color: #888; }
+    small { color: #666; font-size: 9px; }
+
+    /* BADGES */
+    .badge-rep { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; border-radius: 4px; padding: 1px 5px; font-size: 9px; font-weight: bold; margin-right: 3px; }
+    .badge-ulis { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; border-radius: 4px; padding: 1px 5px; font-size: 9px; font-weight: bold; }
+
+    /* FOOTER */
+    .footer { margin-top: 20px; padding-top: 10px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; font-size: 9px; color: #999; }
+
+    /* PRINT */
+    @media print {
+      body { padding: 10px; }
+      @page { margin: 15mm; size: A4 landscape; }
+      thead { display: table-header-group; }
+      tr { page-break-inside: avoid; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-left">
+      <h1>🏫 Mon Mouvement</h1>
+      <h2>Résultats de recherche — ${deptText}</h2>
+    </div>
+    <div class="header-right">
+      Généré le ${now}<br>
+      <strong>${schoolsWithRoutes.length} école(s) trouvée(s)</strong>
+    </div>
+  </div>
+
+  <div class="summary">
+    <div class="summary-card">
+      <div class="label">📍 Position de référence</div>
+      <div class="value" style="font-size:11px;">${adresse}</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">🎯 Critère de recherche</div>
+      <div class="value">${critLabel}</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">🔍 Filtres appliqués</div>
+      <div class="value" style="font-size:10px;">Type: ${type} · ${statut}<br>Éd. prioritaire: ${epLabel}</div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>École</th>
+        <th>Statut</th>
+        <th>Type</th>
+        <th>Adresse</th>
+        <th>Distance</th>
+        <th>Temps</th>
+        <th>Labels</th>
+        <th>Téléphone</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <span>Mon Mouvement — mon-mouvement.vercel.app</span>
+    <span>Données : data.education.gouv.fr · Trajets : openrouteservice.org</span>
+    <span>${schoolsWithRoutes.length} écoles — ${deptText}</span>
+  </div>
+
+  <script>window.onload = () => { window.print(); }<\/script>
+</body>
+</html>`);
+  printWindow.document.close();
 }
