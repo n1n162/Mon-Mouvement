@@ -727,64 +727,82 @@ function sortResults(key) {
 // ===== EXPORT PDF =====
 function downloadPDF() {
   if (!schoolsWithRoutes.length) {
-    alert("Aucun résultat à exporter.");
+    alert("Aucun resultat a exporter.");
     return;
   }
 
-  // Charger jsPDF depuis CDN si pas encore chargé
-  if (typeof window.jspdf === 'undefined') {
-    const s1 = document.createElement('script');
-    s1.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-    s1.onload = () => {
-      const s2 = document.createElement('script');
-      s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js';
-      s2.onload = () => generatePDF();
-      document.head.appendChild(s2);
-    };
-    document.head.appendChild(s1);
-  } else {
-    generatePDF();
+  const btn = document.getElementById("printBtn");
+  const originalText = btn.innerHTML;
+  btn.innerHTML = "Chargement...";
+  btn.disabled = true;
+
+  function loadScript(src, cb) {
+    if (document.querySelector(`script[src="${src}"]`)) { cb(); return; }
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = cb;
+    document.head.appendChild(s);
   }
+
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', () => {
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js', () => {
+      loadScript('https://cdnjs.cloudflare.com/ajax/libs/leaflet-image/0.4.0/leaflet-image.js', () => {
+        // Capturer la carte puis générer le PDF
+        if (typeof leafletImage !== 'undefined' && map) {
+          leafletImage(map, (err, canvas) => {
+            const mapDataUrl = (!err && canvas) ? canvas.toDataURL('image/jpeg', 0.85) : null;
+            generatePDF(mapDataUrl);
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+          });
+        } else {
+          generatePDF(null);
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      });
+    });
+  });
 }
 
-function generatePDF() {
+function generatePDF(mapDataUrl) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
 
   // Infos contexte
   const dept = document.getElementById("departement");
   const deptText = dept.options[dept.selectedIndex]?.text || selectedDepartment;
-  const adresse = document.getElementById("adresse").value || "Non définie";
+  const adresse = document.getElementById("adresse").value || "Non definie";
   const criterion = document.querySelector('input[name="criterion"]:checked').value;
   const criterionValue = document.getElementById("criterionValue").value;
-  const critLabel = criterion === 'distance' ? `≤ ${criterionValue} km` : `≤ ${criterionValue} min de trajet`;
+  const critLabel = criterion === 'distance' ? `<= ${criterionValue} km` : `<= ${criterionValue} min de trajet`;
   const type = document.getElementById("type").value || "Tous";
-  const statut = document.getElementById("statut").value || "Public & Privé";
+  const statut = document.getElementById("statut").value || "Public & Prive";
   const ep = document.getElementById("educationPrioritaire").value;
-  const epLabel = ep === "REP+" ? "REP+ seulement" : ep === "REP" ? "REP seulement" : ep === "hors" ? "Hors éd. prioritaire" : "Tous";
+  const epLabel = ep === "REP+" ? "REP+ seulement" : ep === "REP" ? "REP seulement" : ep === "hors" ? "Hors ed. prioritaire" : "Tous";
   const now = new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
-  const pageW = doc.internal.pageSize.getWidth();
 
-  // --- EN-TÊTE ---
+  // === PAGE 1 : EN-TETE + CARTE + RESUME ===
   doc.setFillColor(102, 126, 234);
-  doc.rect(0, 0, pageW, 22, 'F');
+  doc.rect(0, 0, pageW, 20, 'F');
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  doc.text('🏫 Mon Mouvement — Résultats de recherche', 10, 10);
+  doc.setFontSize(15);
+  doc.text('Mon Mouvement - Resultats de recherche', 10, 9);
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.text(deptText, 10, 17);
-  doc.text(`Généré le ${now}`, pageW - 10, 17, { align: 'right' });
+  doc.text(deptText, 10, 16);
+  doc.text(`Genere le ${now}`, pageW - 10, 16, { align: 'right' });
 
-  // --- RÉSUMÉ ---
-  doc.setTextColor(50, 50, 50);
-  const cardY = 26;
+  // Cartes resume
+  const cardY = 23;
   const cards = [
-    { label: '📍 Position de référence', value: adresse.length > 50 ? adresse.substring(0, 47) + '...' : adresse },
-    { label: '🎯 Critère', value: critLabel },
-    { label: '🔍 Filtres', value: `${type} · ${statut} · Éd. prio: ${epLabel}` },
-    { label: '✅ Résultats', value: `${schoolsWithRoutes.length} école(s) trouvée(s)` },
+    { label: 'Position de reference', value: adresse.length > 55 ? adresse.substring(0, 52) + '...' : adresse },
+    { label: 'Critere de recherche', value: critLabel },
+    { label: 'Filtres', value: `${type} | ${statut} | Ed. prio: ${epLabel}` },
+    { label: 'Resultats', value: `${schoolsWithRoutes.length} ecole(s) trouvee(s)` },
   ];
   const cardW = (pageW - 20) / cards.length;
   cards.forEach((c, i) => {
@@ -802,41 +820,80 @@ function generatePDF() {
     doc.setFont('helvetica', 'normal');
   });
 
-  // --- TABLEAU ---
+  // Carte
+  let currentY = cardY + 18;
+  if (mapDataUrl) {
+    const mapH = 75;
+    doc.setDrawColor(200, 210, 255);
+    doc.setLineWidth(0.3);
+    doc.rect(10, currentY, pageW - 20, mapH);
+    doc.addImage(mapDataUrl, 'JPEG', 10, currentY, pageW - 20, mapH);
+    currentY += mapH + 3;
+    doc.setFontSize(7);
+    doc.setTextColor(150);
+    doc.text('Carte generee automatiquement - les marqueurs representent les ecoles correspondant aux criteres', pageW / 2, currentY, { align: 'center' });
+    currentY += 5;
+  }
+
+  // === PAGE 2 : TABLEAU COMPLET ===
+  doc.addPage();
+
+  // En-tete page 2
+  doc.setFillColor(102, 126, 234);
+  doc.rect(0, 0, pageW, 12, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text(`Liste des ecoles - ${deptText} - ${schoolsWithRoutes.length} ecole(s)`, 10, 8);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text(critLabel, pageW - 10, 8, { align: 'right' });
+
   const tableData = schoolsWithRoutes.map((s, i) => [
     i + 1,
-    s.nom_etablissement,
-    s.nom_commune + ' ' + s.code_postal,
-    s.statut_public_prive,
-    s.type,
-    s.distanceKm + ' km',
-    s.durationMin + ' min',
+    s.nom_etablissement || '',
+    (s.adresse_1 || '') + (s.adresse_2 ? ' ' + s.adresse_2 : ''),
+    s.nom_commune + ' ' + (s.code_postal || ''),
+    s.statut_public_prive || '',
+    s.type || '',
+    s.distanceKm ? s.distanceKm + ' km' : '',
+    s.durationMin ? s.durationMin + ' min' : '',
     s.appartenance_education_prioritaire || '',
+    s.nombre_d_eleves || '',
+    s.ulis ? 'Oui' : '',
     s.telephone || '',
+    s.mail || '',
+    s.nom_circonscription || '',
+    s.identifiant_de_l_etablissement || '',
   ]);
 
   doc.autoTable({
-    startY: cardY + 18,
-    head: [['#', 'École', 'Commune', 'Statut', 'Type', 'Distance', 'Temps', 'Éd. Prio.', 'Téléphone']],
+    startY: 15,
+    head: [['#', 'Ecole', 'Adresse', 'Commune', 'Statut', 'Type', 'Dist.', 'Temps', 'Ed.Prio', 'Eleves', 'ULIS', 'Tel.', 'Mail', 'Circonscription', 'RNE']],
     body: tableData,
     theme: 'grid',
-    styles: { fontSize: 8, cellPadding: 2.5, overflow: 'linebreak' },
-    headStyles: { fillColor: [102, 126, 234], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+    styles: { fontSize: 7, cellPadding: 2, overflow: 'linebreak', valign: 'middle' },
+    headStyles: { fillColor: [102, 126, 234], textColor: 255, fontStyle: 'bold', fontSize: 7 },
     alternateRowStyles: { fillColor: [248, 249, 255] },
     columnStyles: {
-      0: { halign: 'center', cellWidth: 8 },
-      1: { cellWidth: 55 },
-      2: { cellWidth: 28 },
-      3: { cellWidth: 18 },
-      4: { cellWidth: 22 },
-      5: { halign: 'center', cellWidth: 18 },
-      6: { halign: 'center', cellWidth: 15 },
-      7: { halign: 'center', cellWidth: 16 },
-      8: { cellWidth: 22 },
+      0:  { halign: 'center', cellWidth: 6 },
+      1:  { cellWidth: 38 },
+      2:  { cellWidth: 30 },
+      3:  { cellWidth: 25 },
+      4:  { cellWidth: 13 },
+      5:  { cellWidth: 16 },
+      6:  { halign: 'center', cellWidth: 13 },
+      7:  { halign: 'center', cellWidth: 13 },
+      8:  { halign: 'center', cellWidth: 13 },
+      9:  { halign: 'center', cellWidth: 11 },
+      10: { halign: 'center', cellWidth: 11 },
+      11: { cellWidth: 20 },
+      12: { cellWidth: 35 },
+      13: { cellWidth: 30 },
+      14: { cellWidth: 16 },
     },
     didParseCell: (data) => {
-      // Colorier les badges REP/REP+
-      if (data.column.index === 7 && data.cell.raw) {
+      if (data.column.index === 8 && data.cell.raw) {
         if (data.cell.raw === 'REP+') {
           data.cell.styles.fillColor = [254, 243, 199];
           data.cell.styles.textColor = [146, 64, 14];
@@ -848,18 +905,21 @@ function generatePDF() {
         }
       }
     },
-    margin: { left: 10, right: 10 },
+    margin: { left: 5, right: 5 },
   });
 
-  // --- FOOTER ---
-  const finalY = doc.internal.pageSize.getHeight() - 8;
-  doc.setFontSize(7);
-  doc.setTextColor(150, 150, 150);
-  doc.text('Mon Mouvement — mon-mouvement.vercel.app', 10, finalY);
-  doc.text('Données : data.education.gouv.fr · Trajets : openrouteservice.org', pageW / 2, finalY, { align: 'center' });
-  doc.text(`${schoolsWithRoutes.length} école(s) — ${deptText}`, pageW - 10, finalY, { align: 'right' });
+  // Footer toutes les pages
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    const y = pageH - 5;
+    doc.setFontSize(7);
+    doc.setTextColor(150);
+    doc.text('Mon Mouvement - mon-mouvement.vercel.app', 10, y);
+    doc.text('Donnees : data.education.gouv.fr | Trajets : openrouteservice.org', pageW / 2, y, { align: 'center' });
+    doc.text(`Page ${i}/${pageCount} - ${schoolsWithRoutes.length} ecole(s)`, pageW - 10, y, { align: 'right' });
+  }
 
-  // --- TÉLÉCHARGEMENT ---
   const filename = `mon-mouvement-${selectedDepartment}-${new Date().toISOString().slice(0,10)}.pdf`;
   doc.save(filename);
 }
