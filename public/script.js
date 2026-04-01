@@ -523,7 +523,12 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
     </div>`;
     document.getElementById("results").innerHTML = summaryHTML;
     // Bouton imprimer ajouté après le résumé
-    if (window.isAuthenticated) document.getElementById("printBtn").style.display = "inline-flex";
+    // Afficher le bouton PDF seulement si connecté
+    if (window.Clerk) window.isAuthenticated = !!window.Clerk.user;
+    if (window.isAuthenticated) {
+      const btn = document.getElementById("printBtn");
+      if (btn) { btn.style.display = "inline-flex"; }
+    }
 
     // Déterminer le tri initial selon le critère choisi
     currentSortKey = (criterion === 'distance') ? 'distance' : 'time';
@@ -541,7 +546,9 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
 
     clearAllRoutes();
     displayResults(sorted, currentSortKey, currentSortAsc);
-    displaySchoolMarkers(filtered, true);
+    // Resync Clerk avant d'afficher les markers
+    if (window.Clerk) window.isAuthenticated = !!window.Clerk.user;
+    displaySchoolMarkers(filtered, true, true);
 
     if (filtered.length > 0) {
       const allPoints = filtered
