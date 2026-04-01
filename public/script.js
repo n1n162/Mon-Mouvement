@@ -290,8 +290,7 @@ function displaySchoolMarkers(schoolsToShow, filtered, isSearch = false) {
 
     // 2. Logique de bridage (Premium)
     let schoolsToDisplay = schoolsToShow;
-
-if (!window.isPremiumUser && isSearch) {
+if (isSearch && window.isPremiumUser !== true) {
   schoolsToDisplay = schoolsToShow.slice(0, 1);
 }
 
@@ -651,7 +650,7 @@ function showSchoolDetails(school, index) {
 // ===== RESULTS TABLE =====
 function displayResults(results, sortKey = currentSortKey, sortAsc = currentSortAsc) {
   // Mode démo : limiter à 1 résultat
-  const isDemo = !window.isPremiumUser;
+  const isDemo = !window.isPremiumUser !== true;
   if (isDemo) results = results.slice(0, 1);
   currentSortKey = sortKey;
   currentSortAsc = sortAsc;
@@ -748,7 +747,7 @@ function sortResults(key) {
 
 // ===== EXPORT PDF =====
 function downloadPDF() {
-  if (!window.isPremiumUser) {
+  if (!window.isPremiumUser !== true) {
     alert("Fonction réservée aux membres premium.");
     return;
   }
