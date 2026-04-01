@@ -422,6 +422,10 @@ function clearAllRoutes() {
 
 // ===== FORM SUBMISSION =====
 document.getElementById("filterForm").addEventListener("submit", async e => {
+  // Resynchroniser avec Clerk au moment de la soumission
+  if (window.Clerk && window.Clerk.user !== undefined) {
+    window.isAuthenticated = !!window.Clerk.user;
+  }
   e.preventDefault();
 
   if (!selectedDepartment) { alert("Veuillez sélectionner un département."); return; }
@@ -519,7 +523,7 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
     </div>`;
     document.getElementById("results").innerHTML = summaryHTML;
     // Bouton imprimer ajouté après le résumé
-    document.getElementById("printBtn").style.display = "inline-flex";
+    if (window.isAuthenticated) document.getElementById("printBtn").style.display = "inline-flex";
 
     // Déterminer le tri initial selon le critère choisi
     currentSortKey = (criterion === 'distance') ? 'distance' : 'time';
