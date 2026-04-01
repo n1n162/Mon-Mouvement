@@ -276,37 +276,34 @@
 
   // --- LES FONCTIONS DE MODAL ---
 
-  function openSignIn() {
-    // 1. Définition de l'URL de base de ton site
-    const currentSite = window.location.origin;
-    
-    // 2. Encodage pour la sécurité des caractères spéciaux
-    const redirect = encodeURIComponent(currentSite);
-
-    // 3. Construction de l'URL finale
-    // IMPORTANT : Utilise bien les backticks (touche AltGr + 7) 
-    // et vérifie qu'il n'y a pas d'espace bizarre.
-    const clerkUrl = `https://unified-hare-92.clerk.accounts.dev/sign-in?redirect_url=${redirect}&after_sign_in_url=${redirect}&after_sign_up_url=${redirect}`;
-    
-    // 4. Redirection
-    window.location.href = clerkUrl;
-}
-}
-
-  function closeSignIn() {
-    const modal = document.getElementById('clerkModal');
-    if (modal) modal.style.display = 'none';
-    
-    const container = document.getElementById('clerk-sign-in');
-    if (container && window.Clerk) {
-      window.Clerk.unmountSignIn(container);
+ function openSignIn() {
+    try {
+        const siteURL = window.location.origin; 
+        const redirectParam = encodeURIComponent(siteURL);
+        
+        // Construction de l'URL avec backticks (touche AltGr + 7)
+        const clerkUrl = `https://unified-hare-92.clerk.accounts.dev/sign-in?redirect_url=${redirectParam}&after_sign_in_url=${redirectParam}&after_sign_up_url=${redirectParam}`;
+        
+        window.location.href = clerkUrl;
+    } catch (err) {
+        console.error("Erreur lors de la redirection :", err);
     }
-  }
+}
 
-  async function signOut() {
-    await window.Clerk.signOut();
-    updateAuthUI();
-  }
+function closeSignIn() {
+    const modal = document.getElementById('clerkModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+async function signOut() {
+    if (window.Clerk) {
+        await window.Clerk.signOut();
+        // Optionnel : recharger la page pour réinitialiser l'UI
+        window.location.reload();
+    }
+}
 </script>
 
 </body>
