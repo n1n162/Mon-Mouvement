@@ -85,7 +85,7 @@ function loadSchoolsForDepartment(code, name) {
       const valid = schools.filter(s => s.latitude && s.longitude);
       document.getElementById("mapInfo").textContent =
         `${name} - ${schools.length} écoles (${valid.length} géolocalisées)`;
-      initMapWithSchools(valid, false);
+      initMapWithSchools(valid);
       document.getElementById("searchSection").style.display = "block";
     })
     .catch(err => {
@@ -250,7 +250,7 @@ function setupAddressAutocomplete() {
 }
 
 // ===== MAP =====
-function initMapWithSchools(validSchools) {
+function initMapWithSchools(validSchools, isSearch = false) {
   if (map) map.remove();
 
   const center = validSchools.length > 0
@@ -275,21 +275,23 @@ function initMapWithSchools(validSchools) {
     );
   }
 
-  displaySchoolMarkers(validSchools, false, isSearchResult);
+  displaySchoolMarkers(validSchools, false, isSearch);
 
     
 }
 
-function displaySchoolMarkers(schoolsToShow, filtered, isResult = false) {
+function displaySchoolMarkers(schoolsToShow, filtered, isSearch = false) {
   map.eachLayer(layer => { 
     if (layer instanceof L.Marker && (!userMarker || layer !== userMarker)) {
       map.removeLayer(layer); 
     }
   });
 
-  // LOGIQUE : On ne bride à 1 école QUE si c'est un résultat de recherche ET que l'user n'est pas connecté
+  // LOGIQUE DE BRIDAGE
   let schoolsToDisplay = schoolsToShow;
-  if (isResult && !window.isAuthenticated && schoolsToShow.length > 0) {
+  
+  // On ne bride que SI c'est une recherche ET que l'utilisateur n'est pas connecté
+  if (isSearch && !window.isAuthenticated && schoolsToShow.length > 0) {
       schoolsToDisplay = [schoolsToShow[0]]; 
   }
 
@@ -310,13 +312,12 @@ function displaySchoolMarkers(schoolsToShow, filtered, isResult = false) {
       })
     }).addTo(map);
 
-    // Ta popup reste la même
+    // ... (garde ton code pour le popup ici)
     marker.bindPopup(`<strong>${school.nom_etablissement}</strong>`);
   });
 
   if (userMarker && map) userMarker.addTo(map);
 }
-
 
 
 // ===== HAVERSINE =====
@@ -476,7 +477,7 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
   if (!preFiltered.length) {
     document.getElementById("results").innerHTML =
       `<p><i class='fas fa-exclamation-triangle'></i> Aucune école dans un rayon de ${haversineRadius.toFixed(0)} km à vol d'oiseau avec ces filtres.</p>`;
-    displaySchoolMarkers([], true);
+    displaySchoolMarkers(step, true, true);
     return;
   }
 
