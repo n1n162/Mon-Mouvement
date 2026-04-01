@@ -277,22 +277,29 @@
   // --- LES FONCTIONS DE MODAL ---
 
   async function openSignIn() {
-    const modal = document.getElementById('clerkModal');
-    const container = document.getElementById('clerk-sign-in');
-    
-    if (modal) modal.style.display = 'flex';
+    // Vérification de sécurité
+    if (!window.Clerk) {
+        console.error("Clerk n'est pas chargé.");
+        return;
+    }
 
     try {
-      // On utilise mountSignIn uniquement si Clerk est chargé
-      await window.Clerk.mountSignIn(container, {
-        afterSignInUrl: window.location.href,
-        afterSignUpUrl: window.location.href,
-      });
+        // On s'assure que Clerk est bien initialisé
+        await window.Clerk.load();
+        
+        // AU LIEU DE mountSignIn, utilisez l'overlay natif de Clerk
+        // C'est beaucoup plus fiable pour éviter l'erreur "Ui components"
+        window.Clerk.openSignIn({
+            afterSignInUrl: window.location.href,
+            afterSignUpUrl: window.location.href,
+        });
+        
     } catch (err) {
-      console.warn("Échec mountSignIn, tentative openSignIn standard:", err);
-      window.Clerk.openSignIn();
+        console.error("Erreur Clerk:", err);
+        // Si vraiment ça échoue, on redirige vers la page de login Clerk (plan B)
+        // window.location.href = "VOTRE_URL_CLERK_DASHBOARD";
     }
-  }
+}
 
   function closeSignIn() {
     const modal = document.getElementById('clerkModal');
