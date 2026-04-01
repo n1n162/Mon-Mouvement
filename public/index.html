@@ -276,18 +276,18 @@
 
   // --- LES FONCTIONS DE MODAL ---
 
- function openSignIn() {
-    try {
-        const siteURL = window.location.origin; 
-        const redirectParam = encodeURIComponent(siteURL);
-        
-        // Construction de l'URL avec backticks (touche AltGr + 7)
-        const clerkUrl = `https://unified-hare-92.clerk.accounts.dev/sign-in?redirect_url=${redirectParam}&after_sign_in_url=${redirectParam}&after_sign_up_url=${redirectParam}`;
-        
-        window.location.href = clerkUrl;
-    } catch (err) {
-        console.error("Erreur lors de la redirection :", err);
-    }
+ ffunction openSignIn() {
+    // 1. UTILISEZ VOTRE NOUVELLE URL ICI (celle trouvée dans le dashboard)
+    const baseUrl = "https://unified-hare-92.accounts.dev/sign-in";
+    
+    const siteURL = window.location.origin; 
+    const redirectParam = encodeURIComponent(siteURL);
+    
+    // 2. On construit l'URL de redirection
+    const clerkUrl = `${baseUrl}?redirect_url=${redirectParam}&after_sign_in_url=${redirectParam}&after_sign_up_url=${redirectParam}`;
+    
+    console.log("Redirection vers :", clerkUrl);
+    window.location.href = clerkUrl;
 }
 
 function closeSignIn() {
