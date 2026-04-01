@@ -276,18 +276,13 @@
 
   // --- LES FONCTIONS DE MODAL ---
 
-function openSignIn() {
-    // 1. On récupère l'URL précise de ton site (ex: https://mon-mouvement.vercel.app/)
-    const siteURL = window.location.origin; 
+  function openSignIn() {
+    // URL de ton portail de connexion Clerk (trouvée dans ton dashboard)
+    const clerkSignInUrl = "https://unified-hare-92.accounts.dev/sign-in";
     
-    // 2. On encode l'URL pour qu'elle passe bien dans l'adresse
-    const redirectParam = encodeURIComponent(siteURL);
-
-    // 3. On construit l'URL de redirection complète
-    // ATTENTION : Vérifie bien si ton URL est .clerk.accounts.dev ou juste .accounts.dev
-    const clerkUrl = `https://unified-hare-92.accounts.dev/default-redirect_url=${redirectParam}&after_sign_in_url=${redirectParam}&after_sign_up_url=${redirectParam}`;
-    
-    window.location.href = clerkUrl;
+    // Au lieu d'ouvrir une modal qui bug, on redirige l'utilisateur
+    // Il se connecte sur Clerk, puis est renvoyé automatiquement chez toi
+    window.location.href = clerkSignInUrl;
 }
 
   function closeSignIn() {
