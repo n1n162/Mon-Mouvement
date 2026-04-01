@@ -255,14 +255,12 @@
       if (elements.userName) elements.userName.textContent = user.firstName || user.emailAddresses[0].emailAddress;
       if (elements.signInBtn) elements.signInBtn.style.display = 'none';
       if (elements.signOutBtn) elements.signOutBtn.style.display = 'inline-block';
-      if (elements.demoBanner) elements.demoBanner.style.display = 'none';
       if (elements.printBtn) elements.printBtn.style.display = 'inline-block';
     } else {
       if (elements.authStatus) elements.authStatus.innerHTML = '<i class="fas fa-lock" style="color:#fcd34d"></i> Mode démo : 1 seul résultat';
       if (elements.userName) elements.userName.textContent = '';
       if (elements.signInBtn) elements.signInBtn.style.display = 'inline-block';
       if (elements.signOutBtn) elements.signOutBtn.style.display = 'none';
-      if (elements.demoBanner) elements.demoBanner.style.display = 'block';
       if (elements.printBtn) elements.printBtn.style.display = 'none';
     }
   }

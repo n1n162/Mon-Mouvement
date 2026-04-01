@@ -85,7 +85,7 @@ function loadSchoolsForDepartment(code, name) {
       const valid = schools.filter(s => s.latitude && s.longitude);
       document.getElementById("mapInfo").textContent =
         `${name} - ${schools.length} écoles (${valid.length} géolocalisées)`;
-      initMapWithSchools(valid);
+      initMapWithSchools(valid, false);
       document.getElementById("searchSection").style.display = "block";
     })
     .catch(err => {
@@ -275,21 +275,21 @@ function initMapWithSchools(validSchools) {
     );
   }
 
-  displaySchoolMarkers(validSchools, false);
+  displaySchoolMarkers(validSchools, false, isSearchResult);
 
     
 }
 
-function displaySchoolMarkers(schoolsToShow, filtered) {
+function displaySchoolMarkers(schoolsToShow, filtered, isResult = false) {
   map.eachLayer(layer => { 
     if (layer instanceof L.Marker && (!userMarker || layer !== userMarker)) {
       map.removeLayer(layer); 
     }
   });
 
-  // LOGIQUE DEMO : Si l'utilisateur n'est pas connecté, on ne garde que la 1ère école
+  // LOGIQUE : On ne bride à 1 école QUE si c'est un résultat de recherche ET que l'user n'est pas connecté
   let schoolsToDisplay = schoolsToShow;
-  if (!window.isAuthenticated && schoolsToShow.length > 0) {
+  if (isResult && !window.isAuthenticated && schoolsToShow.length > 0) {
       schoolsToDisplay = [schoolsToShow[0]]; 
   }
 
@@ -310,14 +310,8 @@ function displaySchoolMarkers(schoolsToShow, filtered) {
       })
     }).addTo(map);
 
-    // ... (le reste de ta logique de popup reste inchangé)
-    const popupContent = `
-      <div style="width:200px;font-family:'Poppins',sans-serif;font-size:13px;">
-        <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:10px 14px;border-radius:8px;margin:-10px -14px 12px -14px;text-align:center;">
-          <strong>${school.nom_etablissement}</strong>
-        </div>
-      </div>`;
-    marker.bindPopup(popupContent);
+    // Ta popup reste la même
+    marker.bindPopup(`<strong>${school.nom_etablissement}</strong>`);
   });
 
   if (userMarker && map) userMarker.addTo(map);
