@@ -226,11 +226,12 @@ async function initClerk() {
 
     // Écouter les changements d'état
     window.Clerk.addListener(({ user }) => {
-  if (user) {
-    window.isPremiumUser = user.publicMetadata && user.publicMetadata.isPremium === true;
-  } else {
-    window.isPremiumUser = false;
-  }
+  // On force la mise à jour globale
+  window.isAuthenticated = !!user;
+  window.isPremiumUser = !!(user && user.publicMetadata && user.publicMetadata.isPremium === true);
+  
+  console.log("Statut Auth:", window.isAuthenticated, "Statut Premium:", window.isPremiumUser);
+  
   updateAuthUI();
 });
 

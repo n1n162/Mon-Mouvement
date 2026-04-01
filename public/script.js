@@ -281,24 +281,27 @@ function initMapWithSchools(validSchools, isSearch = false) {
 }
 
 function displaySchoolMarkers(schoolsToShow, filtered, isSearch = false) {
-  map.eachLayer(layer => { 
+  // Nettoyage de la carte...
+  map.eachLayer(layer => {
     if (layer instanceof L.Marker && (!userMarker || layer !== userMarker)) {
-      map.removeLayer(layer); 
+      map.removeLayer(layer);
     }
   });
 
-  // LOGIQUE DE BRIDAGE
+  // --- LOGIQUE DE BRIDAGE STRICT ---
   let schoolsToDisplay = schoolsToShow;
   
-  // On ne bride que SI c'est une recherche ET que l'utilisateur n'est pas connecté
-  if (isSearch && !window.isPremiumUser && schoolsToShow.length > 0) {
-      schoolsToDisplay = [schoolsToShow[0]]; 
+  // Si c'est une recherche (isSearch) et que l'utilisateur n'est PAS premium
+  if (isSearch && window.isPremiumUser !== true) {
+      console.warn("Accès limité : Affichage d'un seul résultat sur la carte.");
+      schoolsToDisplay = schoolsToShow.slice(0, 1); 
   }
 
   const iconUrl = filtered
     ? 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png'
     : 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
 
+  // On boucle sur schoolsToDisplay (qui n'a qu'un élément si non-premium)
   schoolsToDisplay.forEach((school) => {
     const lat = parseFloat(school.latitude);
     const lng = parseFloat(school.longitude);
