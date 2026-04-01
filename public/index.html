@@ -210,42 +210,72 @@
   window.isAuthenticated = false;
 
   // Fonction d'initialisation propre
-  async function initClerk() {
-    try {
-      // On attend que l'objet Clerk soit présent sur la fenêtre
-      if (!window.Clerk) {
-        console.error("Le script Clerk n'est pas chargé. Vérifiez votre balise <script> CDN.");
-        return;
-      }
-
-      // Initialisation du SDK
-      await window.Clerk.load();
-      console.log("Clerk est prêt");
-
-      // Mise à jour initiale de l'interface
-      updateAuthUI();
-
-      // Écouter les changements d'état (connexion/déconnexion)
-      window.Clerk.addListener(({ user }) => {
-  window.isAuthenticated = !!user;
-  
-  // Vérification : Si l'utilisateur est connecté mais n'a pas encore de compte premium
-  // ET que c'est sa toute première connexion (inscription)
-  const isNewUser = user && (new Date() - new Date(user.createdAt) < 60000); // Créé il y a moins d'une minute
-  const isPremium = user && user.publicMetadata && user.publicMetadata.isPremium === true;
-
-  if (window.isAuthenticated && isNewUser && !isPremium) {
-    console.log("Nouvel utilisateur détecté, redirection vers Stripe...");
-    window.location.href = "https://buy.stripe.com/cNiaEX8YL6OvcngeY3grS0e";
-    return;
-  }
-
-  updateAuthUI();
-});
-    } catch (err) {
-      console.error("Erreur lors de l'initialisation de Clerk:", err);
+// Remplace ton bloc initClerk par celui-ci
+async function initClerk() {
+  try {
+    if (!window.Clerk) {
+      console.error("Clerk n'est pas chargé.");
+      return;
     }
+
+    await window.Clerk.load();
+    console.log("Clerk est prêt");
+
+    // Mise à jour au démarrage
+    updateAuthUI();
+
+    // Écouter les changements d'état
+    window.Clerk.addListener(({ user }) => {
+      if (!user) {
+        window.isAuthenticated = false;
+        window.isPremiumUser = false;
+      } else {
+        window.isAuthenticated = true;
+        // On vérifie si l'utilisateur a le flag premium dans Clerk
+        window.isPremiumUser = user.publicMetadata && user.publicMetadata.isPremium === true;
+      }
+      updateAuthUI();
+    });
+
+  } catch (err) {
+    console.error("Erreur lors de l'initialisation de Clerk:", err);
+  } // <--- Le catch est bien là maintenant !
+}
+
+window.addEventListener('load', initClerk);
+
+function updateAuthUI() {
+  const user = window.Clerk.user;
+  const isPremium = window.isPremiumUser;
+
+  const elements = {
+    authStatus: document.getElementById('authStatus'),
+    userName: document.getElementById('userName'),
+    signInBtn: document.getElementById('signInBtn'),
+    signOutBtn: document.getElementById('signOutBtn'),
+    printBtn: document.getElementById('printBtn')
+  };
+
+  if (user) {
+    // Icône couronne pour les premium, check vert pour les autres
+    const icon = isPremium ? '<i class="fas fa-crown" style="color:#f59e0b"></i>' : '<i class="fas fa-check-circle" style="color:#a3e635"></i>';
+    const statusText = isPremium ? ' Membre Premium' : ' Mode démo (non payé)';
+    
+    if (elements.authStatus) elements.authStatus.innerHTML = `${icon}${statusText}`;
+    if (elements.userName) elements.userName.textContent = user.firstName || user.emailAddresses[0].emailAddress;
+    
+    elements.signInBtn.style.display = 'none';
+    elements.signOutBtn.style.display = 'inline-block';
+    
+    // Le bouton PDF est visible SEULEMENT si Premium
+    if (elements.printBtn) elements.printBtn.style.display = isPremium ? 'inline-block' : 'none';
+  } else {
+    if (elements.authStatus) elements.authStatus.innerHTML = '<i class="fas fa-lock" style="color:#fcd34d"></i> Mode démo : 1 seul résultat';
+    elements.signInBtn.style.display = 'inline-block';
+    elements.signOutBtn.style.display = 'none';
+    if (elements.printBtn) elements.printBtn.style.display = 'none';
   }
+}
 
   // Lancement de l'initialisation
   window.addEventListener('load', initClerk);
