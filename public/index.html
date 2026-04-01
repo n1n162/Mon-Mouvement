@@ -285,7 +285,19 @@
 
     // 3. On construit l'URL de redirection complète
     // ATTENTION : Vérifie bien si ton URL est .clerk.accounts.dev ou juste .accounts.dev
+    const clerkUrl = `function openSignIn() {
+    // 1. On récupère l'URL précise de ton site (ex: https://mon-mouvement.vercel.app/)
+    const siteURL = window.location.origin; 
+    
+    // 2. On encode l'URL pour qu'elle passe bien dans l'adresse
+    const redirectParam = encodeURIComponent(siteURL);
+
+    // 3. On construit l'URL de redirection complète
+    // ATTENTION : Vérifie bien si ton URL est .clerk.accounts.dev ou juste .accounts.dev
     const clerkUrl = `https://unified-hare-92.clerk.accounts.dev/sign-in?redirect_url=${redirectParam}&after_sign_in_url=${redirectParam}&after_sign_up_url=${redirectParam}`;
+    
+    window.location.href = clerkUrl;
+}`;
     
     window.location.href = clerkUrl;
 }
