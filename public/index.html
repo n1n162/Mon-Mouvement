@@ -276,19 +276,16 @@
 
   // --- LES FONCTIONS DE MODAL ---
 
-  async function openSignIn() {
-  if (window.Clerk) {
-    // On récupère l'URL actuelle du site dynamiquement
-    const currentUrl = window.location.origin; 
-
-    window.Clerk.openSignIn({
-      // Force Clerk à renvoyer l'utilisateur ICI après la connexion
-      afterSignInUrl: currentUrl,
-      afterSignUpUrl: currentUrl,
-      // Si tu veux rediriger vers une page spécifique comme index.html
-      // redirectUrl: currentUrl + "/index.html" 
-    });
-  }
+  function openSignIn() {
+    // 1. On récupère l'adresse de ton site actuel dynamiquement
+    const retourSite = window.location.origin; 
+    
+    // 2. On construit l'URL de connexion avec le paramètre de redirection
+    // On utilise encodeURIComponent pour que l'URL soit bien lue par Clerk
+    const clerkSignInUrl = `https://unified-hare-92.accounts.dev/sign-in?redirect_url=${encodeURIComponent(retourSite)}`;
+    
+    // 3. On redirige
+    window.location.href = clerkSignInUrl;
 }
 
   function closeSignIn() {
