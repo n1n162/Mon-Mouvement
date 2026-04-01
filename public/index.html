@@ -227,8 +227,21 @@
 
       // Écouter les changements d'état (connexion/déconnexion)
       window.Clerk.addListener(({ user }) => {
-        window.isAuthenticated = !!user;
-        updateAuthUI();
+  window.isAuthenticated = !!user;
+  
+  // Vérification : Si l'utilisateur est connecté mais n'a pas encore de compte premium
+  // ET que c'est sa toute première connexion (inscription)
+  const isNewUser = user && (new Date() - new Date(user.createdAt) < 60000); // Créé il y a moins d'une minute
+  const isPremium = user && user.publicMetadata && user.publicMetadata.isPremium === true;
+
+  if (window.isAuthenticated && isNewUser && !isPremium) {
+    console.log("Nouvel utilisateur détecté, redirection vers Stripe...");
+    window.location.href = "https://buy.stripe.com/cNiaEX8YL6OvcngeY3grS0e";
+    return;
+  }
+
+  updateAuthUI();
+});
       });
     } catch (err) {
       console.error("Erreur lors de l'initialisation de Clerk:", err);
