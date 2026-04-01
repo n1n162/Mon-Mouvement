@@ -281,37 +281,42 @@ function initMapWithSchools(validSchools, isSearch = false) {
 }
 
 function displaySchoolMarkers(schoolsToShow, filtered, isSearch = false) {
-    // Nettoyage de la carte
+    // 1. Nettoyage de la carte
     map.eachLayer(layer => {
         if (layer instanceof L.Marker && (!userMarker || layer !== userMarker)) {
             map.removeLayer(layer);
         }
     });
 
-    // --- LOGIQUE DE BRIDAGE ---
+    // 2. Logique de bridage (Premium)
     let schoolsToDisplay = schoolsToShow;
-
-    // Si c'est une recherche ET (pas connecté OU pas premium)
-    if (isSearch && (window.isPremiumUser !== true)) {
-        console.log("🔒 MODE DÉMO ACTIVÉ : Limitation à 1 résultat.");
-        schoolsToDisplay = schoolsToShow.slice(0, 1); 
-    } else {
-        console.log("🔓 MODE COMPLET : Affichage de tous les résultats.");
+    if (isSearch && window.isPremiumUser !== true) {
+        console.log("🔒 Mode Démo : Bridage activé");
+        schoolsToDisplay = schoolsToShow.slice(0, 1);
     }
 
-    // On utilise bien schoolsToDisplay pour la suite
-    schoolsToDisplay.forEach((school) => {
-    const lat = parseFloat(school.latitude);
-    const lng = parseFloat(school.longitude);
-    if (isNaN(lat) || isNaN(lng)) return;
+    // 3. DÉFINITION DE L'ICÔNE (C'est ici qu'elle manquait peut-être)
+    const iconUrl = filtered
+        ? 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png'
+        : 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
 
-    const marker = L.marker([lat, lng], {
-      icon: L.icon({
-        iconUrl,
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-      })
-    }).addTo(map);
+    // 4. Affichage des marqueurs
+    schoolsToDisplay.forEach((school) => {
+        const lat = parseFloat(school.latitude);
+        const lng = parseFloat(school.longitude);
+        if (isNaN(lat) || isNaN(lng)) return;
+
+        // Utilisation de iconUrl définie juste au-dessus
+        const marker = L.marker([lat, lng], {
+            icon: L.icon({
+                iconUrl: iconUrl, // <-- La variable est utilisée ici
+                shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            })
+        }).addTo(map);
 
     // ... (garde ton code pour le popup ici)
     marker.bindPopup(`<strong>${school.nom_etablissement}</strong>`);
