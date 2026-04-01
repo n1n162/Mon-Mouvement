@@ -276,13 +276,19 @@
 
   // --- LES FONCTIONS DE MODAL ---
 
-  function openSignIn() {
-    // URL de ton portail de connexion Clerk (trouvée dans ton dashboard)
-    const clerkSignInUrl = "https://unified-hare-92.accounts.dev/sign-in";
-    
-    // Au lieu d'ouvrir une modal qui bug, on redirige l'utilisateur
-    // Il se connecte sur Clerk, puis est renvoyé automatiquement chez toi
-    window.location.href = clerkSignInUrl;
+  async function openSignIn() {
+  if (window.Clerk) {
+    // On récupère l'URL actuelle du site dynamiquement
+    const currentUrl = window.location.origin; 
+
+    window.Clerk.openSignIn({
+      // Force Clerk à renvoyer l'utilisateur ICI après la connexion
+      afterSignInUrl: currentUrl,
+      afterSignUpUrl: currentUrl,
+      // Si tu veux rediriger vers une page spécifique comme index.html
+      // redirectUrl: currentUrl + "/index.html" 
+    });
+  }
 }
 
   function closeSignIn() {
