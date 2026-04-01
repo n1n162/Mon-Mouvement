@@ -212,88 +212,103 @@
   <script defer src="/_vercel/insights/script.js"></script>
 
   <script>
-  // ===== CLERK AUTH =====
-  // isAuthenticated est utilisé par script.js pour activer/désactiver les fonctionnalités
+  // État global
   window.isAuthenticated = false;
 
-  window.addEventListener('load', async () => {
-  try {
-    // 1. Attendre le chargement complet
-    await window.Clerk.load();
-    
-    // 2. Initialiser l'UI une première fois
-    updateAuthUI();
+  // Fonction d'initialisation propre
+  async function initClerk() {
+    try {
+      // On attend que l'objet Clerk soit présent sur la fenêtre
+      if (!window.Clerk) {
+        console.error("Le script Clerk n'est pas chargé. Vérifiez votre balise <script> CDN.");
+        return;
+      }
 
-    // 3. Écouter les changements (connexion/déconnexion)
-    window.Clerk.addListener(({ user }) => {
-      // On s'assure que isAuthenticated est bien à jour globalement
-      window.isAuthenticated = !!user;
+      // Initialisation du SDK
+      await window.Clerk.load();
+      console.log("Clerk est prêt");
+
+      // Mise à jour initiale de l'interface
       updateAuthUI();
-    });
-  } catch (error) {
-    console.error("Clerk n'a pas pu être initialisé :", error);
+
+      // Écouter les changements d'état (connexion/déconnexion)
+      window.Clerk.addListener(({ user }) => {
+        window.isAuthenticated = !!user;
+        updateAuthUI();
+      });
+    } catch (err) {
+      console.error("Erreur lors de l'initialisation de Clerk:", err);
+    }
   }
-});
+
+  // Lancement de l'initialisation
+  window.addEventListener('load', initClerk);
 
   function updateAuthUI() {
     const user = window.Clerk.user;
     window.isAuthenticated = !!user;
 
-    const authStatus = document.getElementById('authStatus');
-    const userName = document.getElementById('userName');
-    const signInBtn = document.getElementById('signInBtn');
-    const signOutBtn = document.getElementById('signOutBtn');
-    const demoBanner = document.getElementById('demoBanner');
-    const printBtn = document.getElementById('printBtn');
+    const elements = {
+      authStatus: document.getElementById('authStatus'),
+      userName: document.getElementById('userName'),
+      signInBtn: document.getElementById('signInBtn'),
+      signOutBtn: document.getElementById('signOutBtn'),
+      demoBanner: document.getElementById('demoBanner'),
+      printBtn: document.getElementById('printBtn')
+    };
 
     if (user) {
-      // Connecté
-      authStatus.innerHTML = '<i class="fas fa-check-circle" style="color:#a3e635"></i> Connecté';
-      userName.textContent = user.firstName || user.emailAddresses?.[0]?.emailAddress || '';
-      signInBtn.style.display = 'none';
-      signOutBtn.style.display = 'inline-block';
-      demoBanner.style.display = 'none';
-      if (printBtn) printBtn.style.removeProperty('display');
+      if (elements.authStatus) elements.authStatus.innerHTML = '<i class="fas fa-check-circle" style="color:#a3e635"></i> Connecté';
+      if (elements.userName) elements.userName.textContent = user.firstName || user.emailAddresses[0].emailAddress;
+      if (elements.signInBtn) elements.signInBtn.style.display = 'none';
+      if (elements.signOutBtn) elements.signOutBtn.style.display = 'inline-block';
+      if (elements.demoBanner) elements.demoBanner.style.display = 'none';
+      if (elements.printBtn) elements.printBtn.style.display = 'inline-block';
     } else {
-      // Non connecté — mode démo
-      authStatus.innerHTML = '<i class="fas fa-lock" style="color:#fcd34d"></i> Mode démo';
-      userName.textContent = '';
-      signInBtn.style.display = 'inline-block';
-      signOutBtn.style.display = 'none';
-      demoBanner.style.display = 'block';
-      if (printBtn) printBtn.style.display = 'none';
+      if (elements.authStatus) elements.authStatus.innerHTML = '<i class="fas fa-lock" style="color:#fcd34d"></i> Mode démo';
+      if (elements.userName) elements.userName.textContent = '';
+      if (elements.signInBtn) elements.signInBtn.style.display = 'inline-block';
+      if (elements.signOutBtn) elements.signOutBtn.style.display = 'none';
+      if (elements.demoBanner) elements.demoBanner.style.display = 'block';
+      if (elements.printBtn) elements.printBtn.style.display = 'none';
     }
   }
+
+  // --- LES FONCTIONS DE MODAL ---
 
   async function openSignIn() {
-  const modal = document.getElementById('clerkModal');
-  const container = document.getElementById('clerk-sign-in');
-  
-  modal.style.display = 'flex';
+    const modal = document.getElementById('clerkModal');
+    const container = document.getElementById('clerk-sign-in');
+    
+    if (modal) modal.style.display = 'flex';
 
-  try {
-    // ÉTAPE CRUCIALE : On vérifie que Clerk est prêt
-    if (!window.Clerk.isReady()) {
-      await window.Clerk.load();
+    try {
+      // On utilise mountSignIn uniquement si Clerk est chargé
+      await window.Clerk.mountSignIn(container, {
+        afterSignInUrl: window.location.href,
+        afterSignUpUrl: window.location.href,
+      });
+    } catch (err) {
+      console.warn("Échec mountSignIn, tentative openSignIn standard:", err);
+      window.Clerk.openSignIn();
     }
-
-    // On monte le composant
-    await window.Clerk.mountSignIn(container, {
-      afterSignInUrl: window.location.href,
-      afterSignUpUrl: window.location.href,
-    });
-  } catch (err) {
-    console.error("Erreur lors de l'ouverture du formulaire Clerk:", err);
-    // Option de secours si mountSignIn échoue
-    window.Clerk.openSignIn(); 
   }
-}
+
+  function closeSignIn() {
+    const modal = document.getElementById('clerkModal');
+    if (modal) modal.style.display = 'none';
+    
+    const container = document.getElementById('clerk-sign-in');
+    if (container && window.Clerk) {
+      window.Clerk.unmountSignIn(container);
+    }
+  }
 
   async function signOut() {
     await window.Clerk.signOut();
     updateAuthUI();
   }
-  </script>
+</script>
 
 </body>
 </html>
