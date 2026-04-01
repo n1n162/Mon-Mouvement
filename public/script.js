@@ -723,9 +723,9 @@ function displayResults(results, sortKey = currentSortKey, sortAsc = currentSort
           <div style="font-size:2rem;margin-bottom:8px;">🔒</div>
           <h3 style="color:#667eea;margin:0 0 8px 0;font-family:Poppins,sans-serif;">Résultats limités en mode démo</h3>
           <p style="color:#666;font-size:13px;margin:0 0 16px 0;">Connectez-vous pour voir tous les résultats, les détails complets et télécharger le rapport PDF.</p>
-          <button onclick="openSignIn ? openSignIn() : null" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;padding:10px 24px;border-radius:24px;cursor:pointer;font-weight:600;font-size:14px;font-family:Poppins,sans-serif;">
-            <i class="fas fa-sign-in-alt"></i> Se connecter / S'inscrire
-          </button>
+          <button onclick="redirectToStripe()" class="premium-upgrade-btn">
+    <i class="fas fa-crown"></i> Débloquer l'accès complet
+</button>
         </div>
       `;
       wrapper.after(overlay);
@@ -990,4 +990,11 @@ function generatePDF(mapCanvas) {
   addFooters();
 
   doc.save(`mon-mouvement-${selectedDepartment}-${new Date().toISOString().slice(0,10)}.pdf`);
+}
+const stripe = Stripe('votre_pk_test_...'); // Ta clé publiable
+
+async function createCheckoutSession() {
+    // Note : Pour un vrai site pro, cette partie se fait normalement côté serveur 
+    // pour plus de sécurité, mais tu peux commencer par un lien direct (Option A).
+    window.location.href = "https://buy.stripe.com/test_votre_identifiant_produit";
 }
