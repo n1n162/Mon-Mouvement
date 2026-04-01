@@ -290,10 +290,10 @@ function displaySchoolMarkers(schoolsToShow, filtered, isSearch = false) {
 
     // 2. Logique de bridage (Premium)
     let schoolsToDisplay = schoolsToShow;
-    if (isSearch && window.isPremiumUser !== true) {
-        console.log("🔒 Mode Démo : Bridage activé");
-        schoolsToDisplay = schoolsToShow.slice(0, 1);
-    }
+
+if (!window.isPremiumUser && isSearch) {
+  schoolsToDisplay = schoolsToShow.slice(0, 1);
+}
 
     // 3. DÉFINITION DE L'ICÔNE (C'est ici qu'elle manquait peut-être)
     const iconUrl = filtered
@@ -748,8 +748,12 @@ function sortResults(key) {
 
 // ===== EXPORT PDF =====
 function downloadPDF() {
+  if (!window.isPremiumUser) {
+    alert("Fonction réservée aux membres premium.");
+    return;
+  }
   if (!schoolsWithRoutes.length) {
-    alert("Aucun resultat a exporter.");
+    alert("Aucun résultat à exporter.");
     return;
   }
 

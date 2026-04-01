@@ -244,7 +244,8 @@ window.addEventListener('load', initClerk);
 
 function updateAuthUI() {
   const user = window.Clerk.user;
-  const isPremium = window.isPremiumUser;
+  windox.isAuthenticated = !!user;
+  window.isPremiumUser = user?.publicMetadata?.isPremium === true;
 
   const elements = {
     authStatus: document.getElementById('authStatus'),
@@ -259,20 +260,22 @@ function updateAuthUI() {
     const icon = isPremium ? '<i class="fas fa-crown" style="color:#f59e0b"></i>' : '<i class="fas fa-check-circle" style="color:#a3e635"></i>';
     const statusText = isPremium ? ' Membre Premium' : ' Mode démo (non payé)';
     
-    if (elements.authStatus) elements.authStatus.innerHTML = `${icon}${statusText}`;
+    if (elements.authStatus) {
+  elements.authStatus.innerHTML = window.isPremiumUser
+    ? '<i class="fas fa-crown" style="color:#f59e0b"></i> Membre Premium'
+    : user
+      ? '<i class="fas fa-check-circle" style="color:#a3e635"></i> Connecté'
+      : '<i class="fas fa-lock" style="color:#fcd34d"></i> Mode démo';
+}
     if (elements.userName) elements.userName.textContent = user.firstName || user.emailAddresses[0].emailAddress;
     
     elements.signInBtn.style.display = 'none';
     elements.signOutBtn.style.display = 'inline-block';
     
     // Le bouton PDF est visible SEULEMENT si Premium
-    if (elements.printBtn) elements.printBtn.style.display = isPremium ? 'inline-block' : 'none';
-  } else {
-    if (elements.authStatus) elements.authStatus.innerHTML = '<i class="fas fa-lock" style="color:#fcd34d"></i> Mode démo : 1 seul résultat';
-    elements.signInBtn.style.display = 'inline-block';
-    elements.signOutBtn.style.display = 'none';
-    if (elements.printBtn) elements.printBtn.style.display = 'none';
-  }
+    if (elements.printBtn) {
+  elements.printBtn.style.display = window.isPremiumUser ? 'inline-block' : 'none';
+	}
 }
 
   // Lancement de l'initialisation
