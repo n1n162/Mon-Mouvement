@@ -278,33 +278,7 @@ function updateAuthUI() {
   // Lancement de l'initialisation
   window.addEventListener('load', initClerk);
 
-  function updateAuthUI() {
-    const user = window.Clerk.user;
-    window.isAuthenticated = !!user;
-
-    const elements = {
-      authStatus: document.getElementById('authStatus'),
-      userName: document.getElementById('userName'),
-      signInBtn: document.getElementById('signInBtn'),
-      signOutBtn: document.getElementById('signOutBtn'),
-      demoBanner: document.getElementById('demoBanner'),
-      printBtn: document.getElementById('printBtn')
-    };
-
-    if (user) {
-      if (elements.authStatus) elements.authStatus.innerHTML = '<i class="fas fa-check-circle" style="color:#a3e635"></i> Connecté';
-      if (elements.userName) elements.userName.textContent = user.firstName || user.emailAddresses[0].emailAddress;
-      if (elements.signInBtn) elements.signInBtn.style.display = 'none';
-      if (elements.signOutBtn) elements.signOutBtn.style.display = 'inline-block';
-      if (elements.printBtn) elements.printBtn.style.display = 'inline-block';
-    } else {
-      if (elements.authStatus) elements.authStatus.innerHTML = '<i class="fas fa-lock" style="color:#fcd34d"></i> Mode démo : 1 seul résultat';
-      if (elements.userName) elements.userName.textContent = '';
-      if (elements.signInBtn) elements.signInBtn.style.display = 'inline-block';
-      if (elements.signOutBtn) elements.signOutBtn.style.display = 'none';
-      if (elements.printBtn) elements.printBtn.style.display = 'none';
-    }
-  }
+  
 
   // --- LES FONCTIONS DE MODAL ---
 
