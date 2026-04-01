@@ -205,12 +205,10 @@
   <script src="script.js"></script>
   <script defer src="/_vercel/insights/script.js"></script>
 
-  <script>
-  // État global
-  window.isAuthenticated = false;
+<script>
+window.isAuthenticated = false;
+window.isPremiumUser = false;
 
-  // Fonction d'initialisation propre
-// Remplace ton bloc initClerk par celui-ci
 async function initClerk() {
   try {
     if (!window.Clerk) {
@@ -219,99 +217,74 @@ async function initClerk() {
     }
 
     await window.Clerk.load();
-    console.log("Clerk est prêt");
-
-    // Mise à jour au démarrage
     updateAuthUI();
 
-    // Écouter les changements d'état
     window.Clerk.addListener(({ user }) => {
-  // On force la mise à jour globale
-  
-  window.isPremiumUser = !!(user && user.publicMetadata && user.publicMetadata.isPremium === true);
-  
-  console.log("Statut Premium:", window.isPremiumUser);
-  
-  updateAuthUI();
-});
-
+      window.isAuthenticated = !!user;
+      window.isPremiumUser = user?.publicMetadata?.isPremium === true;
+      updateAuthUI();
+    });
   } catch (err) {
     console.error("Erreur lors de l'initialisation de Clerk:", err);
-  } // <--- Le catch est bien là maintenant !
+  }
 }
 
 window.addEventListener('load', initClerk);
 
 function updateAuthUI() {
-  const user = window.Clerk.user;
-  windox.isAuthenticated = !!user;
+  const user = window.Clerk?.user || null;
+  window.isAuthenticated = !!user;
   window.isPremiumUser = user?.publicMetadata?.isPremium === true;
 
-  const elements = {
-    authStatus: document.getElementById('authStatus'),
-    userName: document.getElementById('userName'),
-    signInBtn: document.getElementById('signInBtn'),
-    signOutBtn: document.getElementById('signOutBtn'),
-    printBtn: document.getElementById('printBtn')
-  };
+  const authStatus = document.getElementById('authStatus');
+  const userName = document.getElementById('userName');
+  const signInBtn = document.getElementById('signInBtn');
+  const signOutBtn = document.getElementById('signOutBtn');
+  const printBtn = document.getElementById('printBtn');
 
   if (user) {
-    // Icône couronne pour les premium, check vert pour les autres
-    const icon = isPremium ? '<i class="fas fa-crown" style="color:#f59e0b"></i>' : '<i class="fas fa-check-circle" style="color:#a3e635"></i>';
-    const statusText = isPremium ? ' Membre Premium' : ' Mode démo (non payé)';
-    
-    if (elements.authStatus) {
-  elements.authStatus.innerHTML = window.isPremiumUser
-    ? '<i class="fas fa-crown" style="color:#f59e0b"></i> Membre Premium'
-    : user
-      ? '<i class="fas fa-check-circle" style="color:#a3e635"></i> Connecté'
-      : '<i class="fas fa-lock" style="color:#fcd34d"></i> Mode démo';
+    if (authStatus) {
+      authStatus.innerHTML = window.isPremiumUser
+        ? '<i class="fas fa-crown" style="color:#f59e0b"></i> Membre Premium'
+        : '<i class="fas fa-check-circle" style="color:#a3e635"></i> Connecté';
+    }
+
+    if (userName) {
+      userName.textContent = user.firstName || user.emailAddresses?.[0]?.emailAddress || '';
+    }
+
+    if (signInBtn) signInBtn.style.display = 'none';
+    if (signOutBtn) signOutBtn.style.display = 'inline-block';
+    if (printBtn) printBtn.style.display = window.isPremiumUser ? 'inline-block' : 'none';
+  } else {
+    if (authStatus) {
+      authStatus.innerHTML = '<i class="fas fa-lock" style="color:#fcd34d"></i> Mode démo';
+    }
+
+    if (userName) userName.textContent = '';
+    if (signInBtn) signInBtn.style.display = 'inline-block';
+    if (signOutBtn) signOutBtn.style.display = 'none';
+    if (printBtn) printBtn.style.display = 'none';
+  }
 }
-    if (elements.userName) elements.userName.textContent = user.firstName || user.emailAddresses[0].emailAddress;
-    
-    elements.signInBtn.style.display = 'none';
-    elements.signOutBtn.style.display = 'inline-block';
-    
-    // Le bouton PDF est visible SEULEMENT si Premium
-    if (elements.printBtn) {
-  elements.printBtn.style.display = window.isPremiumUser ? 'inline-block' : 'none';
-	}
-}
 
-  // Lancement de l'initialisation
-  window.addEventListener('load', initClerk);
-
-  
-
-  // --- LES FONCTIONS DE MODAL ---
-
- function openSignIn() {
-    // 1. Ton URL Clerk exacte (celle qui ne renvoie pas de 404)
-    const clerkBase = "https://unified-hare-92.accounts.dev/sign-in";
-    
-    // 2. Ton site Vercel
-    const mySite = "https://mon-mouvement-git-v4-n1n162s-projects.vercel.app";
-    
-    // 3. On construit l'URL proprement
-    const finalUrl = clerkBase + "?redirect_url=" + encodeURIComponent(mySite);
-    
-    console.log("Redirection vers :", finalUrl);
-    window.location.href = finalUrl;
+function openSignIn() {
+  const clerkBase = "https://unified-hare-92.accounts.dev/sign-in";
+  const mySite = "https://mon-mouvement-git-v4-n1n162s-projects.vercel.app";
+  const finalUrl = clerkBase + "?redirect_url=" + encodeURIComponent(mySite);
+  window.location.href = finalUrl;
 }
 
 function closeSignIn() {
-    const modal = document.getElementById('clerkModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
+  const modal = document.getElementById('clerkModal');
+  if (modal) modal.style.display = 'none';
 }
 
 async function signOut() {
-    if (window.Clerk) {
-        await window.Clerk.signOut();
-        // Optionnel : recharger la page pour réinitialiser l'UI
-        window.location.reload();
-    }
+  if (window.Clerk) {
+    await window.Clerk.signOut();
+    window.location.reload();
+  }
 }
 </script>
 
