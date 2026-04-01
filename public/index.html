@@ -226,16 +226,13 @@ async function initClerk() {
 
     // Écouter les changements d'état
     window.Clerk.addListener(({ user }) => {
-      if (!user) {
-        window.isAuthenticated = false;
-        window.isPremiumUser = false;
-      } else {
-        window.isAuthenticated = true;
-        // On vérifie si l'utilisateur a le flag premium dans Clerk
-        window.isPremiumUser = user.publicMetadata && user.publicMetadata.isPremium === true;
-      }
-      updateAuthUI();
-    });
+  if (user) {
+    window.isPremiumUser = user.publicMetadata && user.publicMetadata.isPremium === true;
+  } else {
+    window.isPremiumUser = false;
+  }
+  updateAuthUI();
+});
 
   } catch (err) {
     console.error("Erreur lors de l'initialisation de Clerk:", err);
