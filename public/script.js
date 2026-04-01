@@ -281,24 +281,26 @@ function initMapWithSchools(validSchools, isSearch = false) {
 }
 
 function displaySchoolMarkers(schoolsToShow, filtered, isSearch = false) {
-  // Nettoyage habituel
-  map.eachLayer(layer => {
-    if (layer instanceof L.Marker && (!userMarker || layer !== userMarker)) {
-      map.removeLayer(layer);
+    // Nettoyage de la carte
+    map.eachLayer(layer => {
+        if (layer instanceof L.Marker && (!userMarker || layer !== userMarker)) {
+            map.removeLayer(layer);
+        }
+    });
+
+    // --- LOGIQUE DE BRIDAGE ---
+    let schoolsToDisplay = schoolsToShow;
+
+    // Si c'est une recherche ET (pas connecté OU pas premium)
+    if (isSearch && (window.isPremiumUser !== true)) {
+        console.log("🔒 MODE DÉMO ACTIVÉ : Limitation à 1 résultat.");
+        schoolsToDisplay = schoolsToShow.slice(0, 1); 
+    } else {
+        console.log("🔓 MODE COMPLET : Affichage de tous les résultats.");
     }
-  });
 
-  // --- LOGIQUE DE BRIDAGE ---
-  let schoolsToDisplay = schoolsToShow;
-  
-  // Si c'est une recherche (isSearch=true) ET que l'utilisateur n'est PAS premium
-  if (isSearch && window.isPremiumUser !== true) {
-      console.log("Bridage activé : 1 seul résultat");
-      schoolsToDisplay = schoolsToShow.slice(0, 1); 
-  }
-
-  // On utilise bien "schoolsToDisplay" pour la suite
-  schoolsToDisplay.forEach((school) => {
+    // On utilise bien schoolsToDisplay pour la suite
+    schoolsToDisplay.forEach((school) => {
     const lat = parseFloat(school.latitude);
     const lng = parseFloat(school.longitude);
     if (isNaN(lat) || isNaN(lng)) return;
