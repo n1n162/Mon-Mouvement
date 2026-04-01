@@ -291,7 +291,7 @@ function displaySchoolMarkers(schoolsToShow, filtered, isSearch = false) {
   let schoolsToDisplay = schoolsToShow;
   
   // On ne bride que SI c'est une recherche ET que l'utilisateur n'est pas connecté
-  if (isSearch && !window.isAuthenticated && schoolsToShow.length > 0) {
+  if (isSearch && !window.isPremiumUser && schoolsToShow.length > 0) {
       schoolsToDisplay = [schoolsToShow[0]]; 
   }
 
