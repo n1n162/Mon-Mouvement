@@ -277,17 +277,17 @@
   // --- LES FONCTIONS DE MODAL ---
 
  function openSignIn() {
-    // 1. UTILISEZ VOTRE NOUVELLE URL ICI (celle trouvée dans le dashboard)
-    const baseUrl = "https://unified-hare-92.accounts.dev/sign-in";
+    // 1. Ton URL Clerk exacte (celle qui ne renvoie pas de 404)
+    const clerkBase = "https://unified-hare-92.clerk.accounts.dev/sign-in";
     
-    const siteURL = window.location.origin; 
-    const redirectParam = encodeURIComponent(siteURL);
+    // 2. Ton site Vercel
+    const mySite = "https://mon-mouvement-git-v4-n1n162s-projects.vercel.app";
     
-    // 2. On construit l'URL de redirection
-    const clerkUrl = `${baseUrl}?redirect_url=${redirectParam}&after_sign_in_url=${redirectParam}&after_sign_up_url=${redirectParam}`;
+    // 3. On construit l'URL proprement
+    const finalUrl = clerkBase + "?redirect_url=" + encodeURIComponent(mySite);
     
-    console.log("Redirection vers :", clerkUrl);
-    window.location.href = clerkUrl;
+    console.log("Redirection vers :", finalUrl);
+    window.location.href = finalUrl;
 }
 
 function closeSignIn() {
