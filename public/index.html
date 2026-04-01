@@ -294,7 +294,7 @@
 
     // 3. On construit l'URL de redirection complète
     // ATTENTION : Vérifie bien si ton URL est .clerk.accounts.dev ou juste .accounts.dev
-    const clerkUrl = `https://unified-hare-92.accounts.dev/default-redirect`;
+    const clerkUrl = `https://unified-hare-92.accounts.dev/default-redirect_url=${redirectParam}&after_sign_in_url=${redirectParam}&after_sign_up_url=${redirectParam}`;
     
     window.location.href = clerkUrl;
 }`;
