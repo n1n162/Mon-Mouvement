@@ -277,27 +277,32 @@
   // --- LES FONCTIONS DE MODAL ---
 
   async function openSignIn() {
-    // Vérification de sécurité
-    if (!window.Clerk) {
-        console.error("Clerk n'est pas chargé.");
-        return;
-    }
+    if (!window.Clerk) return;
 
     try {
-        // On s'assure que Clerk est bien initialisé
+        // 1. On s'assure que Clerk est initialisé
         await window.Clerk.load();
-        
-        // AU LIEU DE mountSignIn, utilisez l'overlay natif de Clerk
-        // C'est beaucoup plus fiable pour éviter l'erreur "Ui components"
+
+        // 2. PETIT "HACK" : On attend que les composants UI soient injectés
+        // Si Clerk.openSignIn n'existe pas ou n'est pas prêt, on attend 100ms
+        let attempts = 0;
+        while (!window.Clerk.openSignIn && attempts < 20) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+
+        // 3. On utilise l'overlay NATIF de Clerk (plus stable que mountSignIn)
         window.Clerk.openSignIn({
             afterSignInUrl: window.location.href,
             afterSignUpUrl: window.location.href,
         });
-        
+
+        // Facultatif : Si vous aviez une modal HTML perso, on la cache
+        const myModal = document.getElementById('clerkModal');
+        if (myModal) myModal.style.display = 'none';
+
     } catch (err) {
-        console.error("Erreur Clerk:", err);
-        // Si vraiment ça échoue, on redirige vers la page de login Clerk (plan B)
-        // window.location.href = "VOTRE_URL_CLERK_DASHBOARD";
+        console.error("Erreur critique Clerk:", err);
     }
 }
 
