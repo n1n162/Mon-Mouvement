@@ -729,7 +729,7 @@ function displayResults(results, sortKey = currentSortKey, sortAsc = currentSort
         min-height:180px;display:flex;flex-direction:column;align-items:center;
         justify-content:flex-end;padding:20px;text-align:center;
       `;
-      overlay.innerHTML = \`
+      overlay.innerHTML = `
         <div style="background:white;border-radius:16px;padding:24px 32px;box-shadow:0 8px 32px rgba(102,126,234,0.2);max-width:400px;border:2px solid #667eea20;">
           <div style="font-size:2rem;margin-bottom:8px;">🔒</div>
           <h3 style="color:#667eea;margin:0 0 8px 0;font-family:Poppins,sans-serif;">Résultats limités en mode démo</h3>
@@ -738,7 +738,7 @@ function displayResults(results, sortKey = currentSortKey, sortAsc = currentSort
             <i class="fas fa-sign-in-alt"></i> Se connecter / S'inscrire gratuitement
           </button>
         </div>
-      \`;
+      `;
       wrapper.after(overlay);
     }
   }

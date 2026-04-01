@@ -217,15 +217,23 @@
   window.isAuthenticated = false;
 
   window.addEventListener('load', async () => {
+  try {
+    // 1. Attendre le chargement complet
     await window.Clerk.load();
+    
+    // 2. Initialiser l'UI une première fois
     updateAuthUI();
 
-    // Écouter les changements d'état
+    // 3. Écouter les changements (connexion/déconnexion)
     window.Clerk.addListener(({ user }) => {
+      // On s'assure que isAuthenticated est bien à jour globalement
       window.isAuthenticated = !!user;
       updateAuthUI();
     });
-  });
+  } catch (error) {
+    console.error("Clerk n'a pas pu être initialisé :", error);
+  }
+});
 
   function updateAuthUI() {
     const user = window.Clerk.user;
@@ -258,17 +266,28 @@
   }
 
   async function openSignIn() {
-    document.getElementById('clerkModal').style.display = 'flex';
-    await window.Clerk.mountSignIn(document.getElementById('clerk-sign-in'), {
+  const modal = document.getElementById('clerkModal');
+  const container = document.getElementById('clerk-sign-in');
+  
+  modal.style.display = 'flex';
+
+  try {
+    // ÉTAPE CRUCIALE : On vérifie que Clerk est prêt
+    if (!window.Clerk.isReady()) {
+      await window.Clerk.load();
+    }
+
+    // On monte le composant
+    await window.Clerk.mountSignIn(container, {
       afterSignInUrl: window.location.href,
       afterSignUpUrl: window.location.href,
     });
+  } catch (err) {
+    console.error("Erreur lors de l'ouverture du formulaire Clerk:", err);
+    // Option de secours si mountSignIn échoue
+    window.Clerk.openSignIn(); 
   }
-
-  function closeSignIn() {
-    document.getElementById('clerkModal').style.display = 'none';
-    window.Clerk.unmountSignIn(document.getElementById('clerk-sign-in'));
-  }
+}
 
   async function signOut() {
     await window.Clerk.signOut();
