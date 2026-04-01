@@ -276,34 +276,13 @@
 
   // --- LES FONCTIONS DE MODAL ---
 
-  async function openSignIn() {
-    if (!window.Clerk) return;
-
-    try {
-        // 1. On s'assure que Clerk est initialisé
-        await window.Clerk.load();
-
-        // 2. PETIT "HACK" : On attend que les composants UI soient injectés
-        // Si Clerk.openSignIn n'existe pas ou n'est pas prêt, on attend 100ms
-        let attempts = 0;
-        while (!window.Clerk.openSignIn && attempts < 20) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-        }
-
-        // 3. On utilise l'overlay NATIF de Clerk (plus stable que mountSignIn)
-        window.Clerk.openSignIn({
-            afterSignInUrl: window.location.href,
-            afterSignUpUrl: window.location.href,
-        });
-
-        // Facultatif : Si vous aviez une modal HTML perso, on la cache
-        const myModal = document.getElementById('clerkModal');
-        if (myModal) myModal.style.display = 'none';
-
-    } catch (err) {
-        console.error("Erreur critique Clerk:", err);
-    }
+  function openSignIn() {
+    // URL de ton portail de connexion Clerk (trouvée dans ton dashboard)
+    const clerkSignInUrl = "https://unified-hare-92.clerk.accounts.dev/sign-in";
+    
+    // Au lieu d'ouvrir une modal qui bug, on redirige l'utilisateur
+    // Il se connecte sur Clerk, puis est renvoyé automatiquement chez toi
+    window.location.href = clerkSignInUrl;
 }
 
   function closeSignIn() {
