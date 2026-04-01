@@ -424,7 +424,7 @@ function clearAllRoutes() {
 document.getElementById("filterForm").addEventListener("submit", async e => {
   // Resynchroniser avec Clerk au moment de la soumission
   if (window.Clerk && window.Clerk.user !== undefined) {
-    window.isAuthenticated = !!window.Clerk.user;
+    window.isPremiumUser = !!window.Clerk.user;
   }
   e.preventDefault();
 
@@ -524,8 +524,8 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
     document.getElementById("results").innerHTML = summaryHTML;
     // Bouton imprimer ajouté après le résumé
     // Afficher le bouton PDF seulement si connecté
-    if (window.Clerk) window.isAuthenticated = !!window.Clerk.user;
-    if (window.isAuthenticated) {
+    if (window.Clerk) window.isPremiumUser = !!window.Clerk.user;
+    if (window.isPremiumUser) {
       const btn = document.getElementById("printBtn");
       if (btn) { btn.style.display = "inline-flex"; }
     }
@@ -547,7 +547,7 @@ document.getElementById("filterForm").addEventListener("submit", async e => {
     clearAllRoutes();
     displayResults(sorted, currentSortKey, currentSortAsc);
     // Resync Clerk avant d'afficher les markers
-    if (window.Clerk) window.isAuthenticated = !!window.Clerk.user;
+    if (window.Clerk) window.isPremiumUser = !!window.Clerk.user;
     displaySchoolMarkers(filtered, true, true);
 
     if (filtered.length > 0) {
@@ -645,7 +645,7 @@ function showSchoolDetails(school, index) {
 // ===== RESULTS TABLE =====
 function displayResults(results, sortKey = currentSortKey, sortAsc = currentSortAsc) {
   // Mode démo : limiter à 1 résultat
-  const isDemo = !window.isAuthenticated;
+  const isDemo = !window.isPremiumUser;
   if (isDemo) results = results.slice(0, 1);
   currentSortKey = sortKey;
   currentSortAsc = sortAsc;
