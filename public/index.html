@@ -28,6 +28,9 @@
       <button id="signInBtn" onclick="openSignIn()" style="display:none;background:white;color:#667eea;border:none;padding:6px 16px;border-radius:20px;cursor:pointer;font-weight:600;font-size:12px;">
         <i class="fas fa-sign-in-alt"></i> Se connecter
       </button>
+      <button id="premiumBtn" onclick="redirectToPayment()" style="display:none;background:linear-gradient(135deg,#f59e0b,#ef4444);color:white;border:none;padding:6px 16px;border-radius:20px;cursor:pointer;font-weight:600;font-size:12px;">
+        <i class="fas fa-crown"></i> Devenir Premium
+      </button>
       <button id="signOutBtn" onclick="signOut()" style="display:none;background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.5);padding:6px 16px;border-radius:20px;cursor:pointer;font-weight:500;font-size:12px;">
         <i class="fas fa-sign-out-alt"></i> Déconnexion
       </button>
@@ -48,6 +51,15 @@
   </header>
 
   
+
+  <!-- BANNIERE PREMIUM pour connectés non-premium -->
+  <div id="premiumBanner" style="display:none;background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:14px 20px;text-align:center;font-family:Poppins,sans-serif;">
+    <i class="fas fa-crown" style="color:#f59e0b"></i>
+    <strong>Vous êtes connecté</strong> — Passez à la version Premium pour accéder à tous les résultats.
+    <button onclick="redirectToPayment()" style="margin-left:12px;background:linear-gradient(135deg,#f59e0b,#ef4444);color:white;border:none;padding:6px 16px;border-radius:20px;cursor:pointer;font-weight:600;font-size:12px;">
+      <i class="fas fa-crown"></i> Accès Premium — 1 an
+    </button>
+  </div>
 
   <main class="container">
     <div class="department-section">
@@ -256,6 +268,10 @@ function updateAuthUI() {
     if (signInBtn) signInBtn.style.display = 'none';
     if (signOutBtn) signOutBtn.style.display = 'inline-block';
     if (printBtn) printBtn.style.display = window.isPremiumUser ? 'inline-block' : 'none';
+    const premiumBtn = document.getElementById('premiumBtn');
+    if (premiumBtn) premiumBtn.style.display = window.isPremiumUser ? 'none' : 'inline-block';
+    const premiumBanner = document.getElementById('premiumBanner');
+    if (premiumBanner) premiumBanner.style.display = window.isPremiumUser ? 'none' : 'block';
   } else {
     if (authStatus) {
       authStatus.innerHTML = '<i class="fas fa-lock" style="color:#fcd34d"></i> Mode démo';
@@ -265,7 +281,17 @@ function updateAuthUI() {
     if (signInBtn) signInBtn.style.display = 'inline-block';
     if (signOutBtn) signOutBtn.style.display = 'none';
     if (printBtn) printBtn.style.display = 'none';
+    const premiumBtnAnon = document.getElementById('premiumBtn');
+    if (premiumBtnAnon) premiumBtnAnon.style.display = 'none';
+    const premiumBannerAnon = document.getElementById('premiumBanner');
+    if (premiumBannerAnon) premiumBannerAnon.style.display = 'none';
   }
+}
+
+function redirectToPayment() {
+  const userId = window.Clerk?.user?.id;
+  if (!userId) { openSignIn(); return; }
+  window.location.href = '/api/stripe/create-checkout?userId=' + encodeURIComponent(userId);
 }
 
 function openSignIn() {
