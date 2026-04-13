@@ -704,8 +704,8 @@ function displayResults(results, sortKey = currentSortKey, sortAsc = currentSort
               <td data-label="Statut">${s.statut_public_prive}</td>
               <td data-label="Type">${s.type}</td>
               <td data-label="Adresse">${s.adresse_1 || ''}${s.adresse_2 ? ', ' + s.adresse_2 : ''}, ${s.code_postal} ${s.nom_commune}</td>
-              <td data-label="Classes" class="num">${s.['nombre_de_classes'] ?? '-'}</td>
-              <td data-label="Postes vacants" class="num">${s.Dont nb supports vacants ?? '-'}</td>
+              <td data-label="Classes" class="num">${s['Nombre_de_classes'] ?? '-'}</td>
+              <td data-label="Postes vacants" class="num">${s['Dont nb supports vacants'] ?? '-'}</td>
 			  <td data-label="Distance" class="num">${s.distanceKm} km</td>
               <td data-label="Temps" class="num">${s.durationMin} min</td>
               <td data-label="Itinéraire"><button onclick="showRouteToSchool(${i})" class="route-btn">🛣️ Voir</button></td>
