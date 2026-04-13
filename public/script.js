@@ -689,6 +689,7 @@ function displayResults(results, sortKey = currentSortKey, sortAsc = currentSort
             <th class="col-type">Type</th>
             <th class="col-addr">Adresse</th>
 			<th class="col-classes">Classes</th>
+			<th class="col-nature">Nature</th>
             <th class="col-vacants">Postes vacants</th>
             <th class="col-km sortable" onclick="sortResults('distance')">Distance ${arrow('distance')}</th>
             <th class="col-min sortable" onclick="sortResults('time')">Temps ${arrow('time')}</th>
@@ -705,7 +706,8 @@ function displayResults(results, sortKey = currentSortKey, sortAsc = currentSort
               <td data-label="Type">${s.type}</td>
               <td data-label="Adresse">${s.adresse_1 || ''}${s.adresse_2 ? ', ' + s.adresse_2 : ''}, ${s.code_postal} ${s.nom_commune}</td>
               <td data-label="Classes" class="num">${s['Nombre_de_classes'] ?? '-'}</td>
-              <td data-label="Postes vacants" class="num">${s['Dont nb supports vacants'] ?? '-'}</td>
+              <td data-label="Nature" class="nat">${s['Nature'] ?? '-'}</td>
+			  <td data-label="Postes vacants" class="num">${s['Dont nb supports vacants'] ?? '-'}</td>
 			  <td data-label="Distance" class="num">${s.distanceKm} km</td>
               <td data-label="Temps" class="num">${s.durationMin} min</td>
               <td data-label="Itinéraire"><button onclick="showRouteToSchool(${i})" class="route-btn">🛣️ Voir</button></td>
