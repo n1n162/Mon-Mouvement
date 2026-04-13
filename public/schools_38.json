@@ -22620,6 +22620,7 @@
     "telephone": "0474334974",
     "web": null,
     "mail": "ce.0382635H@ac-grenoble.fr",
+	"Nombre_de_classes": "10"
     "ulis": 1,
     "appartenance_education_prioritaire": null,
     "nombre_d_eleves": null,
@@ -22630,6 +22631,10 @@
     "date_maj_ligne": "2025-07-24",
     "code_circonscription": "0382755N",
     "type": "primaire"
+	"Poste_1": "68130"
+	"Nature": "DE - Directeur d'école"
+	"Spécialité": "D0000 - Direction"
+	"Dont nb supports vacants": "0"
   },
   {
     "identifiant_de_l_etablissement": "0382654D",
