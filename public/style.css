@@ -711,6 +711,7 @@ footer {
 .results-table .col-statut { width: 8%; }
 .results-table .col-type { width: 9%; }
 .results-table .col-addr { width: 25%; }
+.results-table .col-Nbr_class { width: 25%; }
 .results-table .col-km, .results-table .col-min { 
   width: 6%; 
   text-align: right; 
