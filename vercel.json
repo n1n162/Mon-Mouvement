@@ -5,6 +5,8 @@
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/server.js" },
-    { "src": "/(.*)", "dest": "/public/$1" }
+    { "src": "/favicon.ico", "dest": "/public/favicon.ico" },
+    { "src": "/(.*\\.(js|css|json|geojson|html|ico|png|jpg|svg))", "dest": "/public/$1" },
+    { "src": "/(.*)", "dest": "/public/index.html" }
   ]
 }
